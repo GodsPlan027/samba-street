@@ -1,0 +1,122 @@
+/* Shared layout for the smaller pages: Donate, Where it goes, About the foundation. */
+
+.page-head {
+  padding: 88px 0 56px;
+}
+.page-head h1 {
+  font-size: clamp(2.75rem, 8vw, 5.5rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  max-width: 14em;
+}
+.page-head .lead {
+  margin-top: 24px;
+  font-size: clamp(1.15rem, 2vw, 1.35rem);
+  line-height: 1.5;
+  max-width: 34em;
+}
+
+/* Rows: a small label on the left, the content on the right, a thin line above. */
+.rows {
+  border-bottom: 1px solid var(--rule);
+}
+.row {
+  display: grid;
+  gap: 12px;
+  padding: 40px 0 48px;
+  border-top: 1px solid var(--rule);
+}
+@media (min-width: 900px) {
+  .row {
+    grid-template-columns: 230px 1fr;
+    gap: 0;
+  }
+}
+.row > h2 {
+  margin: 0;
+  padding-top: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+.row .text {
+  font-size: 1.2rem;
+  line-height: 1.55;
+  max-width: 36em;
+}
+.row .text + .text,
+.row .text + .btn-line,
+.row .text + table,
+.row table + .btn-line {
+  margin-top: 20px;
+}
+.row .muted {
+  color: var(--muted);
+}
+
+/* Tables: thin lines, numbers on the right. */
+.table {
+  width: 100%;
+  max-width: 760px;
+  border-collapse: collapse;
+}
+.table th {
+  text-align: left;
+  font-weight: 500;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  padding: 10px 16px 10px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.table td {
+  padding: 13px 16px 13px 0;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+.table .amt {
+  text-align: right;
+  padding-right: 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.table .total td {
+  border-top: 1px solid var(--text);
+  border-bottom: 0;
+  font-weight: 500;
+}
+
+/* Big numbers in a row of three. */
+.figures {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0 24px;
+  max-width: 760px;
+}
+.figures > div {
+  border-top: 1px solid var(--text);
+  padding-top: 14px;
+}
+.figures .big {
+  margin-top: 6px;
+  font-size: clamp(1.6rem, 3.6vw, 2.6rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 719px) {
+  .figures {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .figures > div:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Wide tables scroll sideways on phones instead of stretching the page. */
+.scroll {
+  overflow-x: auto;
+}

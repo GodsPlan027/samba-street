@@ -1,0 +1,161 @@
+---
+// The donate box: monthly or once, an amount, and one button to the payment page.
+// The payment links are in src/site.ts. While a link is empty, the button opens an
+// email to us with the chosen amount, so it always does something useful.
+import { CONTACT_EMAIL, DONATE_AMOUNTS, DONATE_LINKS, FOUNDATION } from "../site";
+
+interface Props {
+  /** "dark" on the green block, "light" on the page background. */
+  tone?: "dark" | "light";
+}
+
+const { tone = "light" } = Astro.props;
+const id = Math.random().toString(36).slice(2, 8);
+
+type Freq = "monthly" | "once";
+const label = (freq: Freq, amount: string) =>
+  amount === "other"
+    ? freq === "monthly"
+      ? "Choose a monthly amount →"
+      : "Choose an amount →"
+    : `Donate €${amount}${freq === "monthly" ? " a month" : ""} →`;
+
+const mail = (freq: Freq, amount: string) => {
+  const gift = amount === "other" ? "an amount of my choice" : `€${amount}`;
+  const subject = `Donation: ${gift}${freq === "monthly" ? " a month" : ""}`;
+  const body = `Hi Samba Street,\n\nI'd like to give ${gift}${freq === "monthly" ? " a month" : ""}. Please send me the details.\n\n`;
+  return `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+};
+
+// Every choice gets its link and button text up front; a small script swaps them.
+const choices: Record<string, { href: string; text: string }> = {};
+for (const freq of ["monthly", "once"] as Freq[]) {
+  for (const amount of [...DONATE_AMOUNTS.map(String), "other"]) {
+    choices[`${freq}-${amount}`] = {
+      href: DONATE_LINKS[freq][amount] || mail(freq, amount),
+      text: label(freq, amount),
+    };
+  }
+}
+const start = choices["monthly-25"];
+---
+
+<div class:list={["donate", tone]} data-donate data-choices={JSON.stringify(choices)}>
+  <fieldset class="freq">
+    <legend class="visually-hidden">How often</legend>
+    <label><input type="radio" name={`freq-${id}`} value="monthly" checked /><span>Monthly</span></label>
+    <label><input type="radio" name={`freq-${id}`} value="once" /><span>Once</span></label>
+  </fieldset>
+  <fieldset class="amounts">
+    <legend class="visually-hidden">Amount</legend>
+    {
+      DONATE_AMOUNTS.map((a) => (
+        <label>
+          <input type="radio" name={`amount-${id}`} value={String(a)} checked={a === 25} />
+          <span class="num">€{a}</span>
+        </label>
+      ))
+    }
+    <label><input type="radio" name={`amount-${id}`} value="other" /><span>Other</span></label>
+  </fieldset>
+  <a class="btn go" href={start.href}>{start.text}</a>
+  {
+    FOUNDATION.iban && (
+      <p class="iban">
+        Or transfer to <span class="num">{FOUNDATION.iban}</span>, {FOUNDATION.name}
+      </p>
+    )
+  }
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-donate]").forEach((box) => {
+    const choices = JSON.parse(box.dataset.choices ?? "{}");
+    const go = box.querySelector<HTMLAnchorElement>(".go")!;
+    const update = () => {
+      const freq = box.querySelector<HTMLInputElement>('.freq input:checked')?.value;
+      const amount = box.querySelector<HTMLInputElement>('.amounts input:checked')?.value;
+      const choice = choices[`${freq}-${amount}`];
+      if (choice) {
+        go.href = choice.href;
+        go.textContent = choice.text;
+      }
+    };
+    box.addEventListener("change", update);
+    update();
+  });
+</script>
+
+<style>
+  fieldset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+  label {
+    position: relative;
+    cursor: pointer;
+  }
+  input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+  input:focus-visible + span {
+    outline: 2px solid var(--sun);
+    outline-offset: 2px;
+  }
+
+  .freq {
+    display: inline-flex;
+    border: 1px solid currentColor;
+    font-size: 0.95rem;
+  }
+  .freq span {
+    display: block;
+    padding: 8px 18px;
+  }
+
+  .amounts {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin-top: 16px;
+    border-top: 1px solid currentColor;
+    border-left: 1px solid currentColor;
+  }
+  .amounts span {
+    display: block;
+    border-right: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+    padding: 16px 14px;
+    font-size: clamp(1.15rem, 2.4vw, 1.6rem);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+
+  .dark input:checked + span {
+    background: #fff;
+    color: var(--accent);
+  }
+  .light input:checked + span {
+    background: var(--text);
+    color: #fff;
+  }
+  .dark span:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .light span:hover {
+    background: rgba(0, 0, 0, 0.04);
+  }
+
+  .go {
+    margin-top: 24px;
+  }
+  .iban {
+    margin-top: 18px;
+    font-size: 0.95rem;
+    opacity: 0.8;
+  }
+</style>

@@ -5,37 +5,58 @@ import { getPublishedPosts } from "../journal";
 interface Props {
   /** White text over a photo (homepage hero, journal post). */
   overlay?: boolean;
-  current?: "journal";
+  current?: "journal" | "where" | "foundation" | "donate";
 }
 
 const { overlay = false, current } = Astro.props;
 // The Journal link only appears once there is something to read.
 const hasPosts = (await getPublishedPosts()).length > 0;
+
+const links = [
+  { href: "/#story", label: "Our story", key: "story" },
+  { href: "/where-it-goes/", label: "Where it goes", key: "where" },
+  ...(hasPosts ? [{ href: "/journal/", label: "Journal", key: "journal" }] : []),
+];
 ---
 
-<nav class:list={["wrap", "top", { overlay }]}>
+<nav class:list={["wrap", "top", { overlay }]} aria-label="Main">
   <a href="/" class="wordmark">
     <img src="/images/logo-128.png" alt="Samba Street" width="64" height="64" />
   </a>
   <div class="links">
     {
-      hasPosts && (
-        <a
-          href="/journal/"
-          class="top-link"
-          aria-current={current === "journal" ? "page" : undefined}
-        >
-          Journal
+      links.map((l) => (
+        <a href={l.href} class="top-link" aria-current={current === l.key ? "page" : undefined}>
+          {l.label}
         </a>
-      )
+      ))
     }
-    <a href={`mailto:${CONTACT_EMAIL}`} class="top-link">Contact</a>
+    <!-- Phones: the links fold into a menu. Works without JavaScript. -->
+    <details class="menu">
+      <summary>Menu</summary>
+      <div class="menu-panel">
+        {links.map((l) => <a href={l.href}>{l.label}</a>)}
+        <a href="/foundation/">About the foundation</a>
+        <a href={`mailto:${CONTACT_EMAIL}`}>Contact</a>
+      </div>
+    </details>
+    <a class="btn btn-sm" href="/donate/" aria-current={current === "donate" ? "page" : undefined}>
+      Donate
+    </a>
   </div>
 </nav>
+
+<script>
+  // Close the phone menu after choosing a link (needed for links within the same page).
+  document.querySelectorAll<HTMLAnchorElement>(".menu-panel a").forEach((a) =>
+    a.addEventListener("click", () => a.closest("details")?.removeAttribute("open")),
+  );
+</script>
 
 <style>
   .top {
     position: relative;
+    z-index: 3;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -62,11 +83,16 @@ const hasPosts = (await getPublishedPosts()).length > 0;
   }
   .links {
     display: flex;
+    align-items: center;
     gap: 28px;
   }
   .top-link {
     text-decoration: none;
     opacity: 0.85;
+  }
+  .overlay .top-link {
+    opacity: 1;
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
   }
   .top-link:hover,
   .top-link[aria-current] {
@@ -74,5 +100,58 @@ const hasPosts = (await getPublishedPosts()).length > 0;
   }
   .top-link[aria-current] {
     border-bottom: 2px solid var(--sun);
+  }
+
+  /* ---------- Phone menu ---------- */
+  .menu {
+    display: none;
+  }
+  .menu summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 6px 0;
+  }
+  .menu summary::-webkit-details-marker {
+    display: none;
+  }
+  .overlay .menu summary {
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
+  }
+  .menu[open] summary {
+    border-bottom: 2px solid var(--sun);
+    padding-bottom: 4px;
+  }
+  .menu-panel {
+    position: absolute;
+    top: calc(100% + 12px);
+    left: -16px;
+    right: -16px;
+    display: grid;
+    padding: 8px 16px 16px;
+    background: var(--bg);
+    color: var(--text);
+    border-bottom: 1px solid var(--rule);
+  }
+  .menu-panel a {
+    padding: 14px 0;
+    border-top: 1px solid var(--rule);
+    font-size: 1.25rem;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    text-decoration: none;
+  }
+  .menu-panel a:first-child {
+    border-top: 0;
+  }
+  @media (max-width: 719px) {
+    .links {
+      gap: 20px;
+    }
+    .top-link {
+      display: none;
+    }
+    .menu {
+      display: block;
+    }
   }
 </style>

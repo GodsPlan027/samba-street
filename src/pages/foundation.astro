@@ -1,0 +1,126 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { CONTACT_EMAIL, FOUNDATION } from "../site";
+import "../styles/page.css";
+
+const { name, kvk, rsin, iban, address, board, anbi } = FOUNDATION;
+
+// What isn't known until the foundation is registered (December 2026).
+const pending = [
+  !kvk && "Chamber of Commerce (KvK) number",
+  !rsin && "RSIN",
+  !iban && "bank account",
+  !address && "address",
+  board.length === 0 && "board",
+].filter(Boolean) as string[];
+const pendingText =
+  pending.length > 1 ? `${pending.slice(0, -1).join(", ")} and ${pending.at(-1)}` : pending[0];
+---
+
+<BaseLayout
+  title="About the foundation – Samba Street"
+  description="Stichting Samba Street: registration details, board and contact."
+>
+  <SiteHeader current="foundation" />
+
+  <main class="wrap">
+    <section class="page-head">
+      <h1>About the foundation<span class="dot">.</span></h1>
+      <p class="lead">
+        {name} runs a football academy at Nkazimlo Primary School in Khayelitsha, Cape Town:
+        training twice a week, gear for all four school teams and tournaments.
+      </p>
+    </section>
+
+    <section class="rows">
+      <div class="row">
+        <h2>Name</h2>
+        <p class="text">{name}</p>
+      </div>
+      {
+        kvk && (
+          <div class="row">
+            <h2>Chamber of Commerce (KvK)</h2>
+            <p class="text num">{kvk}</p>
+          </div>
+        )
+      }
+      {
+        rsin && (
+          <div class="row">
+            <h2>RSIN</h2>
+            <p class="text num">{rsin}</p>
+          </div>
+        )
+      }
+      {
+        iban && (
+          <div class="row">
+            <h2>Bank account</h2>
+            <p class="text num">
+              {iban}, {name}
+            </p>
+          </div>
+        )
+      }
+      {
+        address && (
+          <div class="row">
+            <h2>Address</h2>
+            <p class="text">{address}</p>
+          </div>
+        )
+      }
+      {
+        board.length > 0 && (
+          <div class="row">
+            <h2>Board</h2>
+            <div>
+              {board.map((m) => (
+                <p class="text">
+                  {m.name}, <span class="muted">{m.role}</span>
+                </p>
+              ))}
+            </div>
+          </div>
+        )
+      }
+      {
+        anbi && (
+          <div class="row">
+            <h2>Tax status</h2>
+            <p class="text">ANBI: gifts are tax-deductible in the Netherlands.</p>
+          </div>
+        )
+      }
+      <div class="row">
+        <h2>Contact</h2>
+        <p class="text"><a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></p>
+      </div>
+      {
+        pending.length > 0 && (
+          <div class="row">
+            <h2>Still to come</h2>
+            <p class="text muted">
+              {name} is registered in the Netherlands in December 2026. The {pendingText} follow
+              here after that.
+            </p>
+          </div>
+        )
+      }
+    </section>
+  </main>
+
+  <SiteFooter line />
+</BaseLayout>
+
+<style>
+  .text a {
+    text-decoration-color: var(--sun);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+  }
+</style>

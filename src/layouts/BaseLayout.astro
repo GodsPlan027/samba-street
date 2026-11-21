@@ -13,13 +13,15 @@ interface Props {
 }
 
 const {
-  title = `${SITE_NAME} – Free football academy for kids`,
+  title = `${SITE_NAME} – Football academy in Khayelitsha, Cape Town`,
   description = SITE_DESCRIPTION,
   image = "/images/logo.png",
   ogType = "website",
   noindex = false,
 } = Astro.props;
 const imageUrl = new URL(image, Astro.site).href;
+// The test site (test.sambastreet.charity) is built with NOINDEX=1, so search engines skip it.
+const hidden = noindex || process.env.NOINDEX === "1";
 ---
 
 <!doctype html>
@@ -30,7 +32,7 @@ const imageUrl = new URL(image, Astro.site).href;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {hidden && <meta name="robots" content="noindex, nofollow" />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content={ogType} />

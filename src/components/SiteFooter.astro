@@ -1,31 +1,83 @@
 ---
+import { CONTACT_EMAIL, FOUNDATION } from "../site";
+import { getPublishedPosts } from "../journal";
+
 interface Props {
-  /** Thin line and extra space above (pages that don't end on a photo). */
+  /** Thin line and extra space above (pages that don't end on a coloured block). */
   line?: boolean;
 }
 
 const { line = false } = Astro.props;
+const hasPosts = (await getPublishedPosts()).length > 0;
+const { kvk, rsin, iban } = FOUNDATION;
+const registered = kvk || rsin || iban;
 ---
 
 <footer class:list={["wrap", "bottom", { line }]}>
-  <span>© {new Date().getFullYear()} Samba Street</span>
-  <span>Non-profit football academy · Khayelitsha, Cape Town</span>
+  <div class="grid">
+    <p>
+      <strong>{FOUNDATION.name}</strong><br />
+      Football academy at Nkazimlo Primary School<br />
+      Khayelitsha, Cape Town
+    </p>
+    <p class="num">
+      {
+        registered ? (
+          <>
+            {kvk && <>KvK {kvk}<br /></>}
+            {rsin && <>RSIN {rsin}<br /></>}
+            {iban && <>IBAN {iban}</>}
+          </>
+        ) : (
+          <>Registration in the Netherlands:<br />December 2026</>
+        )
+      }
+    </p>
+    <p>
+      <a href="/foundation/">About the foundation</a><br />
+      <a href="/where-it-goes/">Where the money goes</a>
+      {hasPosts && <><br /><a href="/journal/">Journal</a></>}
+    </p>
+    <p><a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></p>
+  </div>
+  <p class="small">© {new Date().getFullYear()} {FOUNDATION.name}</p>
   <slot />
 </footer>
 
 <style>
   .bottom {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding-top: 28px;
-    padding-bottom: 40px;
+    padding-top: 36px;
+    padding-bottom: 48px;
     font-size: 0.875rem;
     color: var(--muted);
   }
   .line {
     margin-top: 120px;
     border-top: 1px solid var(--rule);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (min-width: 720px) {
+    .grid {
+      grid-template-columns: 2fr 1.5fr 1.4fr 1.5fr;
+    }
+  }
+  strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+  a {
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+  a:hover {
+    color: var(--text);
+  }
+  .small {
+    margin-top: 28px;
+    font-size: 0.75rem;
   }
 </style>

@@ -37,7 +37,7 @@ export type CategoryTotal = { name: string; amount: number; share: number };
 // Splits CSV text into rows of fields. Handles quoted fields ("a, b"),
 // escaped quotes ("") and both comma and semicolon separators
 // (Excel uses semicolons in many European settings).
-function parseCsv(text: string): string[][] {
+export function parseCsv(text: string): string[][] {
   text = text.replace(/^﻿/, "");
   const firstLine = text.split(/\r?\n/, 1)[0] ?? "";
   const sep =
@@ -97,7 +97,7 @@ function parseAmount(raw: string): number | null {
 }
 
 // Accepts 2026-10-24, 24-10-2026 and 24/10/2026. Returns YYYY-MM-DD.
-function parseDate(raw: string): string | null {
+export function parseDate(raw: string): string | null {
   const s = raw.trim();
   let y: number, m: number, d: number;
   let match = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
@@ -195,18 +195,19 @@ export const source = SHEET_ID
   ? { name: "Google Sheet", url: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit` }
   : { name: DATA_FILE, url: null };
 
-export async function loadFinances() {
+// `file` reads that CSV file instead (the public website uses data/finances.csv).
+export async function loadFinances(file?: string) {
   const transactions: Transaction[] = [];
   const problems: Problem[] = [];
   let error: string | null = null;
 
   let rows: string[][] = [];
   try {
-    if (SHEET_ID) {
+    if (SHEET_ID && !file) {
       rows = await rowsFromSheet();
     } else {
-      const path = resolve(process.cwd(), DATA_FILE);
-      if (!existsSync(path)) throw new Error(`File not found: ${DATA_FILE}`);
+      const path = resolve(process.cwd(), file ?? DATA_FILE);
+      if (!existsSync(path)) throw new Error(`File not found: ${file ?? DATA_FILE}`);
       rows = parseCsv(readFileSync(path, "utf8"));
     }
   } catch (e) {

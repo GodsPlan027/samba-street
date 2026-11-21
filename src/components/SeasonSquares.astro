@@ -1,0 +1,74 @@
+---
+// The season as squares: one per planned session, filled in once it's held and logged.
+import { loadSessions, seasonMonths } from "../transparency";
+
+const months = seasonMonths(loadSessions());
+---
+
+<div class="season">
+  {
+    months.map((m) => (
+      <div>
+        <p class="m">{m.label}</p>
+        <div class="sq">
+          {Array.from({ length: Math.max(m.planned, m.held) }, (_, i) => (
+            <i class:list={{ held: i < m.held }} />
+          ))}
+        </div>
+      </div>
+    ))
+  }
+</div>
+<p class="legend label"><span>Planned</span><span class="held">Held and logged</span></p>
+
+<style>
+  .season {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 20px;
+    margin-top: 40px;
+  }
+  .m {
+    font-size: 0.8125rem;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .sq {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+  }
+  .sq i {
+    aspect-ratio: 1;
+    border: 1px solid #b9b3a5;
+  }
+  .sq i.held {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .legend {
+    margin-top: 16px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .legend span::before {
+    content: "";
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    margin-right: 8px;
+    vertical-align: -1px;
+    border: 1px solid #b9b3a5;
+  }
+  .legend .held::before {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  @media (max-width: 719px) {
+    .season {
+      grid-template-columns: repeat(5, 1fr);
+      gap: 18px 12px;
+    }
+  }
+</style>

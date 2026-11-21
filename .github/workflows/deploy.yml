@@ -18,6 +18,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Set to 1 (as a repo variable) on the test site only, so search engines skip it.
+      NOINDEX: ${{ vars.NOINDEX }}
     steps:
       - uses: actions/checkout@v4
       - uses: withastro/action@v3

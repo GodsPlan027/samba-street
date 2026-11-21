@@ -1,71 +1,86 @@
 ---
-import { Image } from "astro:assets";
+import { Image, getImage } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
+import DonateBox from "../components/DonateBox.astro";
+import SeasonSquares from "../components/SeasonSquares.astro";
 import { CONTACT_EMAIL } from "../site";
 import { getPublishedPosts, postUrl, formatDate, isoDate } from "../journal";
+import { startBudget, publicFinances, loadSessions, goal, euro } from "../transparency";
+import { money } from "../dashboard/finances";
 
-// Latest journal posts: one large, up to two small. Hidden until the first post.
-const [lead, ...others] = (await getPublishedPosts()).slice(0, 3);
+import hero from "../assets/site/hero.jpg";
+import training from "../assets/site/training.jpg";
+import tyres from "../assets/site/tyres.jpg";
+import ball from "../assets/site/ball.jpg";
+import boots from "../assets/site/boots.jpg";
+import centre from "../assets/site/khayelitsha-centre.jpg";
+import tournament from "../assets/site/tournament.jpg";
 
-const facts = [
-  { value: "20", label: "Players" },
-  { value: "9–12", label: "Years old" },
-  { value: "2×", label: "Training a week" },
-  { value: "R0", label: "Cost" },
+// Numbers from src/site.ts and the CSV files in data/.
+const budget = startBudget();
+const finances = await publicFinances();
+const sessions = loadSessions();
+const progress = await goal();
+
+// Latest journal posts, shown once there are any.
+const posts = (await getPublishedPosts()).slice(0, 3);
+
+// The hero photo as link preview (WhatsApp, Facebook and so on).
+const shareImage = await getImage({ src: hero, width: 1200, format: "jpg" });
+
+const overview = [
+  { when: "2010", what: "The goal" },
+  { when: "Nov 2026", what: "What we saw" },
+  { when: "Dec 2026", what: "We are here", here: true },
+  { when: "Mar 2027", what: "First training" },
+  { when: "Every 2 months", what: "A tournament" },
+  { when: "Dec 2027", what: "A full season" },
 ];
 
-const steps = [
+const observations = [
   {
-    title: "We partner",
-    text: "We team up with one local primary school and build the academy together, drawing on the school's knowledge of its pupils and the community.",
+    title: "Two balls for everyone",
+    text: "So during training, many kids stand on the side, watching.",
   },
   {
-    title: "We build a team",
-    text: "Kids aged 9–12 at the school can sign up, and we select a first group of 20 players. From day one, they train and play as one team.",
+    title: "No cones, ladders or bibs",
+    text: "Car tyres stand in for cones, but they're too big for passing drills. One team takes off their shirts to tell the teams apart.",
   },
   {
-    title: "We develop",
-    text: "The team trains twice a week and tests itself in tournaments. Along the way, kids build confidence, discipline and a sense of belonging.",
-  },
-];
-
-const provide = [
-  {
-    img: "/images/training.jpg",
-    alt: "A youth team running a drill together on a dirt pitch",
-    pos: "58% 50%",
-    title: "Training",
-    text: "Two sessions a week, focused on skills, creativity and playing as a team.",
+    title: "One goal, shared with rugby",
+    text: "The football team trains right through the rugby team. Finishing drills often can't happen.",
   },
   {
-    img: "/images/tournament.jpg",
-    alt: "A youth match on a dusty pitch, the goalkeeper ready in goal",
-    title: "Tournaments",
-    text: "Opportunities to represent the team, compete against other teams and put their training into practice.",
+    title: "One coach, no licence",
+    text: "He runs every session and arranges the matches. There's no budget for a licence, and his assistant hardly has time.",
   },
   {
-    img: "/images/gear.jpg",
-    alt: "A smiling boy in a blue football kit pulling up his socks before playing",
-    pos: "36% 50%",
-    title: "Gear",
-    text: "Every player gets the kit and gear they need to train and play.",
+    title: "Three drills",
+    text: "One for finishing, one for passing, one for positions. Every session looks exactly the same.",
+  },
+  {
+    title: "Sessions cancelled",
+    text: "Training often doesn't happen, because there aren't enough coaches.",
   },
 ];
 
-const ticker = ["Training twice a week", "Tournaments", "Full gear", "Free for every kid"];
+// Weeks with training in a year, as 52 small blocks.
+const weeksNow = Array.from({ length: 52 }, (_, i) => i === 37 || i === 38);
+const weeksFromMarch = Array.from({ length: 52 }, (_, i) => i >= 9 && i <= 48);
 ---
 
-<BaseLayout>
-  <!-- Hero: full-bleed photo -->
+<BaseLayout image={shareImage.src}>
+  <!-- Opening: the photo fills the first screen, and all of its text fits on it. -->
   <header class="hero">
-    <img
+    <Image
       class="hero-img"
-      src="/images/hero.jpg"
-      alt="Children playing a football match on a dusty field in a South African township"
-      width="2400"
-      height="1600"
+      src={hero}
+      alt="Kids playing a football match on a dusty school field"
+      widths={[640, 960, 1280, 1920, 2400]}
+      sizes="100vw"
+      loading="eager"
       fetchpriority="high"
     />
     <div class="hero-shade"></div>
@@ -73,218 +88,340 @@ const ticker = ["Training twice a week", "Tournaments", "Full gear", "Free for e
     <SiteHeader overlay />
 
     <div class="wrap hero-content">
-      <h1>Free football<br />for kids who<br />love the game<span class="dot">.</span></h1>
+      <div>
+        <p class="hero-date">11 June 2010 · Soccer City, Johannesburg</p>
+        <h1>Bring back Samba football<span class="dot">.</span></h1>
+      </div>
       <p class="intro">
-        Samba Street is a non-profit football academy in Khayelitsha, Cape Town. We give kids aged
-        9–12 the chance to train, compete and grow through football.
+        Siphiwe Tshabalala scored the first goal of the 2010 World Cup. A month later, the
+        Netherlands played the final in the same stadium. That goal is our badge: football played
+        for joy. We're bringing it to Khayelitsha, Cape Town.
       </p>
     </div>
+    <ol class="wrap overview" aria-label="The season at a glance">
+      {
+        overview.map((o) => (
+          <li class:list={{ here: o.here }}>
+            {o.when}
+            <span>{o.what}</span>
+          </li>
+        ))
+      }
+    </ol>
   </header>
 
-  <main>
-    <section class="wrap">
-      <dl class="facts">
-        {
-          facts.map((f) => (
-            <div>
-              <dt>{f.label}</dt>
-              <dd>{f.value}</dd>
-            </div>
-          ))
-        }
-      </dl>
-    </section>
-
-    <!-- About + photo pair -->
-    <section class="wrap row reveal">
-      <h2>About</h2>
-      <div class="body">
-        <p>
-          Football builds confidence, teaches teamwork and gives kids a place to belong. But club
-          fees, boots and kits add up, and not every family can afford them.
+  <main class="wrap" id="story">
+    <!-- November 2026: what we saw -->
+    <article class="item">
+      <div class="when">
+        <p class="month">November 2026</p>
+        <span class="label">Two weeks in Khayelitsha</span>
+      </div>
+      <div class="body reveal">
+        <h2>Four teams. Two balls. One coach.</h2>
+        <p class="lead">
+          We spent two weeks at Nkazimlo Primary School in Khayelitsha, one of the largest
+          townships in South Africa. The school has four teams, boys under 10, under 12 and under 14
+          and girls under 14: about 80 kids.
         </p>
-        <p>
-          Samba Street brings that opportunity to Khayelitsha, Cape Town. Working alongside a
-          local school, we provide a structured football programme where kids can develop their
-          skills, represent their team and enjoy the game together, at no cost to them or their
-          families.
-        </p>
-      </div>
-    </section>
-
-    <section class="wrap pair reveal" aria-label="Photos">
-      <figure class="pair-main">
-        <img
-          src="/images/khayelitsha-centre.jpg"
-          alt="Children playing on the pitch of the Football for Hope Centre in Khayelitsha"
-          width="1476"
-          height="984"
-          loading="lazy"
-        />
-      </figure>
-      <figure class="pair-side">
-        <img
-          src="/images/portrait.jpg"
-          alt="Portrait of a smiling boy"
-          width="1000"
-          height="1500"
-          loading="lazy"
-        />
-      </figure>
-    </section>
-
-    <!-- Moving ticker -->
-    <div class="ticker" aria-hidden="true">
-      <div class="ticker-track">
-        {
-          [0, 1].map(() => (
-            <span>
-              {ticker.map((t) => (
-                <>
-                  {t}
-                  <i>●</i>
-                </>
-              ))}
-            </span>
-          ))
-        }
-      </div>
-    </div>
-
-    <!-- How it works: sticky photo + steps -->
-    <section class="wrap how reveal">
-      <div class="how-media">
-        <figure>
-          <img
-            src="/images/khayelitsha-pitch.jpg"
-            alt="A girl dribbling a ball on a football pitch surrounded by houses in Khayelitsha"
-            width="1600"
-            height="1071"
-            loading="lazy"
-          />
-        </figure>
-      </div>
-      <div>
-        <h2 class="label">How it works</h2>
-        <ol class="body steps">
+        <div class="photos">
+          <figure class="big">
+            <Image
+              src={training}
+              alt="A youth team running together across a dirt pitch"
+              widths={[480, 800, 1200]}
+              sizes="(min-width: 1200px) 580px, 62vw"
+            />
+          </figure>
+          <figure class="small">
+            <Image
+              class="gray"
+              src={tyres}
+              alt="A pile of old car tyres"
+              widths={[320, 640]}
+              sizes="(min-width: 1200px) 290px, 31vw"
+            />
+          </figure>
+          <figure class="small">
+            <Image
+              src={ball}
+              alt="A worn football lying on the grass"
+              widths={[320, 640]}
+              sizes="(min-width: 1200px) 290px, 31vw"
+            />
+          </figure>
+        </div>
+        <div class="facts">
           {
-            steps.map((s) => (
+            observations.map((o) => (
+              <p>
+                <strong>{o.title}</strong>
+                {o.text}
+              </p>
+            ))
+          }
+        </div>
+        <figure class="boots">
+          <Image
+            src={boots}
+            alt="Worn white football boots on a red running track"
+            widths={[640, 960, 1280]}
+            sizes="(min-width: 1200px) 870px, 100vw"
+          />
+          <div class="boots-shade"></div>
+          <p>No boots, no match.</p>
+        </figure>
+        <p class="lead">
+          Most kids have boots with holes and missing studs. In the Netherlands, nobody would wear
+          them anymore. Some train in socks or sneakers. At matches, kids without football boots
+          aren't allowed to play.
+        </p>
+        <div class="weeks">
+          <p class="label">Under-10s and under-12s, worst case: weeks with training in a year</p>
+          <div class="strip" aria-hidden="true">
+            {weeksNow.map((on) => <i class:list={{ on }} />)}
+          </div>
+          <p class="weeks-cap">
+            <strong>2 of 52 weeks.</strong> The teams only train when a match is coming up. For the under-10s
+            and under-12s, that's the two weeks before their one knockout tournament. The under-14s haven't
+            trained since their league ended, three months ago.
+          </p>
+        </div>
+      </div>
+    </article>
+
+    <!-- December 2026: we are here -->
+    <article class="item here" id="now">
+      <div class="when">
+        <p class="month">December 2026</p>
+        <span class="here-tag">We are here</span>
+      </div>
+      <div class="body reveal">
+        <h2>To start in March, we need {euro(budget.total)} before selection day.</h2>
+        <p class="lead">
+          Stichting Samba Street is registered in the Netherlands this month. This is what has to be
+          there on the first day of training:
+        </p>
+        <ul class="needs">
+          {
+            budget.items.map((i) => (
               <li>
-                <div>
-                  <h3>{s.title}</h3>
-                  <p>{s.text}</p>
-                </div>
+                <span>{i.item}</span>
+                <span class="num">{euro(i.amount)}</span>
               </li>
             ))
           }
-        </ol>
+        </ul>
+        <div class="goal">
+          <p class="goal-big num">
+            {money(progress.raised)} <span>of {euro(progress.total)} raised</span>
+          </p>
+          <div class="bar"><span style={`width: ${progress.percent}%`}></span></div>
+          <p class="label">{progress.donations}</p>
+        </div>
+        <div class="ctas">
+          <a class="btn" href="/donate/">Donate</a>
+          <a class="btn-line" href="/donate/">Give monthly →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- March 2027 and on: the plan -->
+    <article class="item">
+      <div class="when">
+        <p class="month">March 2027</p>
+        <span class="label">Selection day, first training</span>
+      </div>
+      <div class="body reveal">
+        <h2>Selection day. Then training, twice a week.</h2>
+        <p class="lead">
+          Every boy from the under-10 and under-12 teams can take part in selection day. We form one
+          team of about 20. The school's coach and a new coach, both paid per session, train them
+          twice a week, the whole school year. Every session is logged: date, players, minutes and
+          drills.
+        </p>
+        <p class="lead">
+          All four teams get gear, the girls too: balls, cones, ladders, bibs, two small goals,
+          football boots and shirts.
+        </p>
+        <div class="weeks">
+          <p class="label">From March 2027: weeks with training</p>
+          <div class="strip" aria-hidden="true">
+            {weeksFromMarch.map((on) => <i class:list={{ on }} />)}
+          </div>
+          <p class="weeks-cap">
+            <strong>Every school week.</strong> Twice a week, from March to the end of the school year.
+          </p>
+        </div>
+        <figure class="wide">
+          <Image
+            src={centre}
+            alt="Kids running on the pitch of the Football for Hope Centre in Khayelitsha"
+            widths={[640, 960, 1440]}
+            sizes="(min-width: 1200px) 870px, 100vw"
+          />
+        </figure>
+      </div>
+    </article>
+
+    <article class="item">
+      <div class="when">
+        <p class="month">Every two months</p>
+        <span class="label">Tournaments</span>
+      </div>
+      <div class="body reveal">
+        <h2>A tournament of our own.</h2>
+        <p class="lead">
+          So the kids actually get to play matches, instead of one knockout game a year.
+        </p>
+        <figure class="wide">
+          <Image
+            src={tournament}
+            alt="A youth match on a dusty pitch, the goalkeeper ready in goal"
+            widths={[640, 960, 1200]}
+            sizes="(min-width: 1200px) 870px, 100vw"
+          />
+        </figure>
+      </div>
+    </article>
+
+    <article class="item">
+      <div class="when">
+        <p class="month">December 2027</p>
+        <span class="label">End of the school year</span>
+      </div>
+      <div class="body reveal">
+        <h2>One full season, logged session by session.</h2>
+        <p class="lead">At the end of the school year, you can see every session and every euro.</p>
+      </div>
+    </article>
+
+    <article class="item">
+      <div class="when">
+        <p class="month">2028</p>
+        <span class="label">Growing</span>
+      </div>
+      <div class="body reveal">
+        <h2>Then the next team.</h2>
+        <p class="lead">We grow step by step, once one team trains consistently.</p>
+      </div>
+    </article>
+
+    <!-- Follow the season: every session gets a square, plus money in and out -->
+    <section class="block" aria-labelledby="season-title">
+      <p class="label">Follow the season</p>
+      <div class="reveal">
+        <h2 id="season-title">Every session gets a square.</h2>
+        <p class="lead">
+          Squares fill in as sessions happen: date, players, minutes and drills. Next to it, all
+          money in and out.
+        </p>
+        <SeasonSquares />
+        <div class="inout">
+          <div>
+            <p class="label">Money in</p>
+            <p class="big num">{money(finances.moneyIn)}</p>
+          </div>
+          <div>
+            <p class="label">Money out</p>
+            <p class="big num">{money(finances.moneyOut)}</p>
+          </div>
+          <div>
+            <p class="label">Sessions held</p>
+            <p class="big num">{sessions.length}</p>
+          </div>
+        </div>
+        <a class="btn-line more" href="/where-it-goes/">Every session and every euro →</a>
       </div>
     </section>
 
-    <!-- What we provide: staggered photo tiles -->
-    <section class="wrap provide reveal">
-      <div class="provide-head">
-        <h2 class="label">What we provide</h2>
-        <p class="swipe-hint" aria-hidden="true">Swipe →</p>
-      </div>
-      <div class="tiles">
-        {
-          provide.map((p, i) => (
-            <article class="tile">
-              <div class="tile-img">
-                <img src={p.img} alt={p.alt} loading="lazy" style={p.pos && `object-position: ${p.pos}`} />
-              </div>
-              <span class="tile-num">0{i + 1}</span>
-              <h3>{p.title}</h3>
-              <p>{p.text}</p>
-            </article>
-          ))
-        }
-      </div>
-    </section>
-
-    <!-- Latest from the journal: green block, one large post and up to two small -->
     {
-      lead && (
-        <section class="latest" aria-labelledby="latest-title">
-          <div class="wrap reveal">
-            <h2 id="latest-title" class="latest-label">
-              Latest from the journal
-            </h2>
-            <div class:list={["latest-grid", { single: others.length === 0 }]}>
-              <a class="latest-lead" href={postUrl(lead)}>
-                <div class="latest-img">
-                  <Image
-                    src={lead.data.cover}
-                    alt=""
-                    widths={[480, 720, 1080, 1440]}
-                    sizes="(min-width: 900px) 600px, calc(100vw - 32px)"
-                  />
-                </div>
-                <div>
-                  <time datetime={isoDate(lead.data.date)}>{formatDate(lead.data.date)}</time>
-                  <h3>{lead.data.title}</h3>
-                </div>
-              </a>
-              {others.length > 0 && (
-                <div class="latest-side">
-                  {others.map((post) => (
-                    <a href={postUrl(post)}>
-                      <Image src={post.data.cover} alt="" widths={[240, 480]} sizes="112px" />
-                      <div>
-                        <time datetime={isoDate(post.data.date)}>{formatDate(post.data.date)}</time>
-                        <h3>{post.data.title}</h3>
-                      </div>
-                    </a>
-                  ))}
-                </div>
-              )}
+      posts.length > 0 && (
+        <section class="block" aria-labelledby="journal-title">
+          <p class="label" id="journal-title">From the journal</p>
+          <div class="reveal">
+            <div class="posts">
+              {posts.map((post) => (
+                <a href={postUrl(post)}>
+                  <Image src={post.data.cover} alt="" widths={[480, 720]} sizes="(min-width: 900px) 290px, 100vw" />
+                  <time datetime={isoDate(post.data.date)}>{formatDate(post.data.date)}</time>
+                  <h3>{post.data.title}</h3>
+                </a>
+              ))}
             </div>
-            <a class="latest-more" href="/journal/">
-              All journal entries →
-            </a>
+            <a class="btn-line more" href="/journal/">All journal entries →</a>
           </div>
         </section>
       )
     }
 
-    <!-- Partner school callout over photo -->
-    <section class="callout">
-      <img
-        class="callout-img"
-        src="/images/street-sunset.jpg"
-        alt=""
-        width="1600"
-        height="2400"
-        loading="lazy"
-      />
-      <div class="callout-shade"></div>
-      <div class="wrap callout-content">
-        <p class="callout-label">Now looking for</p>
-        <h2>A partner school.</h2>
-        <p class="callout-text">
-          Are you a primary school that would like to offer your students free football training?
-          We'd love to hear from you.
+    <!-- Who we are -->
+    <section class="block who" aria-label="Who we are">
+      <p class="label">Who we are</p>
+      <div class="reveal">
+        <blockquote class="quote">
+          “In Khayelitsha there are so many young people who love the game and have the talent to
+          go far. But the chances simply aren't there, or they're much smaller.”
+        </blockquote>
+        <p class="cite">Vince Beekmans, founder</p>
+        <p class="lead">
+          We found Nkazimlo through Khanyisa, a teacher who has lived in Khayelitsha most of his life
+          and knows principals at several schools. The school gave us its full blessing.
         </p>
-        <a class="email" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL} →</a>
       </div>
     </section>
   </main>
 
-  <SiteFooter>
+  <!-- Donate -->
+  <section class="give" id="donate">
+    <div class="wrap give-inner">
+      <div>
+        <h2>The season starts in March<span class="dot">.</span></h2>
+        <p class="sub">Help it start on time, and keep it going all year with a monthly gift.</p>
+      </div>
+      <DonateBox tone="dark" />
+    </div>
+  </section>
+
+  <!-- Funds, companies, clubs -->
+  <section class="wrap partners" aria-labelledby="partners-title">
+    <p class="label" id="partners-title">Giving as an organisation?</p>
+    <div class="partner-grid">
+      <div>
+        <h3>Funds</h3>
+        <p>Project plan, budget and annual figures on request.</p>
+        <a class="btn-line" href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Samba Street: support from a fund")}`}
+          >Get in touch →</a
+        >
+      </div>
+      <div>
+        <h3>Companies</h3>
+        <p>Support the academy as a company.</p>
+        <a class="btn-line" href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Samba Street: support from a company")}`}
+          >Get in touch →</a
+        >
+      </div>
+      <div>
+        <h3>Football clubs</h3>
+        <p>Bring your club and its members on board.</p>
+        <a class="btn-line" href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Samba Street: support from a football club")}`}
+          >Get in touch →</a
+        >
+      </div>
+    </div>
+  </section>
+
+  <SiteFooter line>
     <p class="credits">
-      Photos: Thato Moiketsi, Rea Mapelele and others via Pexels; Andrea Grips (<a
+      Photos: Thato Moiketsi and others via Pexels; Andrea Grips (<a
         href="https://commons.wikimedia.org/wiki/File:Khayelitsha_Football_for_Hope_Centre.jpg"
         >CC BY-SA 3.0</a
-      >) and Ed Suter (<a
-        href="https://commons.wikimedia.org/wiki/File:Young_girl_practices_her_soccer_skills,_Khayelitsha,_Cape_Town.jpg"
-        >CC BY-SA 4.0</a
       >) via Wikimedia Commons.
     </p>
   </SiteFooter>
 
   <script>
-    // Fade sections in as they scroll into view.
+    // Fade blocks in as they scroll into view.
     const els = document.querySelectorAll(".reveal");
     if ("IntersectionObserver" in window) {
       const io = new IntersectionObserver(
@@ -295,7 +432,7 @@ const ticker = ["Training twice a week", "Tournaments", "Full gear", "Free for e
               io.unobserve(e.target);
             }
           }),
-        { threshold: 0.12 }
+        { threshold: 0.08 },
       );
       els.forEach((el) => io.observe(el));
     } else {
@@ -312,456 +449,29 @@ const ticker = ["Training twice a week", "Tournaments", "Full gear", "Free for e
   figure {
     margin: 0;
   }
-
-  /* ---------- Hero ---------- */
-  .hero {
-    position: relative;
-    min-height: 100svh;
-    display: flex;
-    flex-direction: column;
-    color: #fff;
-    overflow: hidden;
+  ol,
+  ul {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 0;
+    list-style: none;
   }
-  .hero-img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: 50% 15%;
-  }
-  .hero-shade {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      180deg,
-      rgba(0, 0, 0, 0.35) 0%,
-      rgba(0, 0, 0, 0) 30%,
-      rgba(0, 0, 0, 0.15) 55%,
-      rgba(0, 0, 0, 0.7) 100%
-    );
-  }
-  .hero-content {
-    position: relative;
-    margin-top: auto;
-    padding-bottom: 56px;
-    display: grid;
-    gap: 24px;
-    align-items: end;
-  }
-  @media (min-width: 900px) {
-    .hero-content {
-      grid-template-columns: 2fr 1fr;
-      padding-bottom: 72px;
-    }
-  }
-  h1 {
-    font-size: clamp(2.75rem, 9vw, 6.75rem);
-    font-weight: 500;
-    line-height: 0.98;
-    letter-spacing: -0.045em;
-  }
-  .dot {
-    color: var(--sun);
-  }
-  .intro {
-    font-size: 1.1rem;
-    max-width: 24em;
-    opacity: 0.9;
-  }
-
-  /* ---------- Facts ---------- */
-  .facts {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+  blockquote {
     margin: 0;
   }
-  @media (min-width: 720px) {
-    .facts {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-  .facts div {
-    padding: 28px 0 32px;
-    border-bottom: 1px solid var(--rule);
-  }
-  dt {
-    font-size: 0.875rem;
-    color: var(--muted);
-  }
-  dd {
-    margin: 6px 0 0;
-    font-size: clamp(2rem, 5vw, 3rem);
-    font-weight: 500;
-    letter-spacing: -0.03em;
-    line-height: 1;
-  }
 
-  /* ---------- Shared text styles ---------- */
-  .row {
-    display: grid;
-    gap: 16px;
-    padding-top: 96px;
-    padding-bottom: 56px;
-  }
-  @media (min-width: 720px) {
-    .row {
-      grid-template-columns: 1fr 2fr;
-      gap: 40px;
-      padding-top: 128px;
-    }
-  }
-  .row h2,
-  .label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--muted);
-    padding-top: 6px;
-  }
-  .body {
-    font-size: clamp(1.25rem, 2.4vw, 1.6rem);
-    line-height: 1.4;
-    letter-spacing: -0.015em;
-  }
-  .body p + p {
-    margin-top: 1em;
-  }
-
-  /* ---------- Photo pair ---------- */
-  .pair {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 12px;
-    align-items: end;
-    padding-bottom: 96px;
-  }
-  @media (min-width: 720px) {
-    .pair {
-      gap: 24px;
-      padding-bottom: 112px;
-    }
-  }
-  .pair img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .pair-main img {
-    aspect-ratio: 3 / 2;
-  }
-  .pair-side img {
-    aspect-ratio: 4 / 5;
-    filter: grayscale(1) contrast(1.05);
-  }
-  @media (min-width: 720px) {
-    .pair-side {
-      transform: translateY(64px);
-    }
-  }
-  /* ---------- Ticker ---------- */
-  .ticker {
-    overflow: hidden;
-    background: var(--accent);
-    color: #fff;
-    padding: 22px 0;
-    margin-top: 32px;
-  }
-  .ticker-track {
-    display: flex;
-    width: max-content;
-    animation: ticker 40s linear infinite;
-  }
-  .ticker-track span {
-    font-size: clamp(1.5rem, 4vw, 2.5rem);
-    font-weight: 500;
-    letter-spacing: -0.03em;
-    white-space: nowrap;
-  }
-  .ticker i {
-    font-style: normal;
-    color: var(--sun);
-    font-size: 0.4em;
-    vertical-align: middle;
-    margin: 0 0.9em;
-  }
-  @keyframes ticker {
-    to {
-      transform: translateX(-50%);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .ticker-track {
-      animation: none;
-    }
-  }
-
-  /* ---------- How it works ---------- */
-  .how {
-    display: grid;
-    gap: 40px;
-    padding-top: 112px;
-    padding-bottom: 112px;
-    border-bottom: 1px solid var(--rule);
-  }
-  @media (min-width: 900px) {
-    .how {
-      grid-template-columns: 1fr 1fr;
-      gap: 64px;
-      align-items: start;
-    }
-    .how-media {
-      position: sticky;
-      top: 32px;
-    }
-  }
-  .how-media img {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
-  }
-  @media (min-width: 900px) {
-    .how-media img {
-      aspect-ratio: 4 / 5;
-    }
-  }
-  .steps {
-    list-style: none;
-    margin: 24px 0 0;
-    padding: 0;
-    counter-reset: step;
-  }
-  .steps li {
-    counter-increment: step;
-    display: grid;
-    grid-template-columns: 2.5em 1fr;
-    padding: 24px 0;
-    border-top: 1px solid var(--rule);
-  }
-  .steps li::before {
-    content: counter(step, decimal-leading-zero);
-    color: var(--accent);
-    font-size: 0.9rem;
-    padding-top: 0.45em;
-  }
-  .steps h3 {
-    font-size: inherit;
-    font-weight: 500;
-    margin-bottom: 8px;
-  }
-  .steps p {
-    font-size: 1.0625rem;
-    line-height: 1.6;
-    letter-spacing: 0;
-    color: var(--muted);
-    max-width: 34em;
-  }
-
-  /* ---------- What we provide ---------- */
-  .provide {
-    padding-top: 112px;
-    padding-bottom: 136px;
-  }
-  .provide-head {
-    display: grid;
-    gap: 16px;
-    margin-bottom: 56px;
-  }
-  @media (min-width: 720px) {
-    .provide-head {
-      grid-template-columns: 1fr 2fr;
-      gap: 40px;
-    }
-  }
-  /* Phones: swipeable row. Larger screens: staggered grid. */
-  .tiles {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 78%;
-    gap: 16px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    margin-right: -16px;
-    padding-right: 16px;
-  }
-  .tiles::-webkit-scrollbar {
-    display: none;
-  }
-  .tile {
-    scroll-snap-align: start;
-  }
-  @media (min-width: 720px) {
-    .tiles {
-      grid-auto-flow: row;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 48px 24px;
-      overflow: visible;
-      margin-right: 0;
-      padding-right: 0;
-    }
-    .tile:nth-child(2) {
-      margin-top: 80px;
-    }
-    .tile:nth-child(3) {
-      margin-top: 32px;
-    }
-  }
-  .swipe-hint {
-    font-size: 0.875rem;
-    color: var(--muted);
-  }
-  @media (min-width: 720px) {
-    .swipe-hint {
-      display: none;
-    }
-  }
-  .tile-img {
-    overflow: hidden;
-    margin-bottom: 20px;
-  }
-  .tile-img img {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 4 / 5;
-    object-fit: cover;
-    transition: transform 0.6s ease;
-  }
-  .tile:hover .tile-img img {
-    transform: scale(1.04);
-  }
-  .tile-num {
-    font-size: 0.875rem;
-    color: var(--accent);
-  }
-  .tile h3 {
-    margin-top: 4px;
-    font-size: 1.5rem;
-    font-weight: 500;
-    letter-spacing: -0.02em;
-  }
-  .tile p {
-    margin-top: 8px;
-    color: var(--muted);
-    max-width: 22em;
-  }
-
-  /* ---------- Latest from the journal ---------- */
-  .latest {
-    background: var(--accent);
-    color: #fff;
-    padding: 112px 0 120px;
-  }
-  .latest-label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.7);
-  }
-  .latest a {
-    text-decoration: none;
-  }
-  .latest time {
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.65);
-  }
-  .latest-grid {
-    display: grid;
-    gap: 40px;
-    margin-top: 40px;
-  }
-  @media (min-width: 900px) {
-    .latest-grid {
-      grid-template-columns: 3fr 2fr;
-      gap: 48px;
-    }
-    /* Only one post so far: photo and title side by side. */
-    .latest-grid.single {
-      grid-template-columns: 1fr;
-    }
-    .single .latest-lead {
-      display: grid;
-      grid-template-columns: 3fr 2fr;
-      gap: 48px;
-      align-items: end;
-    }
-  }
-  .latest-img {
-    overflow: hidden;
-    margin-bottom: 20px;
-  }
-  .single .latest-img {
-    margin-bottom: 0;
-  }
-  .latest-img :global(img) {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 3 / 2;
-    object-fit: cover;
-    transition: transform 0.6s ease;
-  }
-  .latest-lead:hover .latest-img :global(img) {
-    transform: scale(1.03);
-  }
-  .latest-lead h3 {
-    margin-top: 6px;
-    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
-    font-weight: 500;
-    letter-spacing: -0.035em;
-    line-height: 1.08;
-  }
-  .latest-side {
-    display: grid;
-    align-content: start;
-  }
-  .latest-side a {
-    display: grid;
-    grid-template-columns: 112px 1fr;
-    gap: 20px;
-    padding: 24px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-  }
-  @media (min-width: 900px) {
-    .latest-side a:first-child {
-      padding-top: 0;
-      border-top: 0;
-    }
-  }
-  .latest-side :global(img) {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 1;
-    object-fit: cover;
-  }
-  .latest-side h3 {
-    margin-top: 2px;
-    font-size: 1.2rem;
-    font-weight: 500;
-    letter-spacing: -0.015em;
-    line-height: 1.25;
-  }
-  .latest-lead:hover h3,
-  .latest-side a:hover h3 {
-    color: var(--sun);
-  }
-  .latest-more {
-    display: inline-block;
-    margin-top: 40px;
-    border-bottom: 2px solid var(--sun);
-    padding-bottom: 2px;
-  }
-  .latest-more:hover {
-    color: var(--sun);
-  }
-
-  /* ---------- Callout ---------- */
-  .callout {
+  /* ---------- Opening ---------- */
+  /* --fold is the height of the first screen (screenshot tools set it to a fixed number). */
+  .hero {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: var(--fold, 100svh);
     color: #fff;
     overflow: hidden;
+    background: #3b3329;
   }
-  .callout-img {
+  .hero :global(.hero-img) {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -769,54 +479,578 @@ const ticker = ["Training twice a week", "Tournaments", "Full gear", "Free for e
     object-fit: cover;
     object-position: 50% 60%;
   }
-  .callout-shade {
+  .hero-shade {
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.35));
+    background: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.45) 0%,
+      rgba(0, 0, 0, 0) 26%,
+      rgba(0, 0, 0, 0.2) 48%,
+      rgba(0, 0, 0, 0.8) 100%
+    );
   }
-  .callout-content {
+  .hero-content {
     position: relative;
-    padding-top: 160px;
-    padding-bottom: 160px;
+    margin-top: auto;
+    display: grid;
+    gap: 18px;
+    align-items: end;
+    padding-top: 28px;
+    padding-bottom: 36px;
+    text-shadow: 0 1px 14px rgba(0, 0, 0, 0.35);
   }
-  .callout-label {
-    font-size: 0.875rem;
-    opacity: 0.75;
+  @media (min-width: 900px) {
+    .hero-content {
+      grid-template-columns: 1.6fr 1fr;
+      gap: 56px;
+      padding-bottom: 44px;
+    }
   }
-  .callout h2 {
-    margin-top: 12px;
-    font-size: clamp(2.5rem, 7vw, 5rem);
+  .hero-date {
     font-weight: 500;
-    letter-spacing: -0.04em;
-    line-height: 1;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 14px;
   }
-  .callout-text {
-    margin-top: 24px;
-    max-width: 28em;
-    font-size: 1.15rem;
-    opacity: 0.85;
+  h1 {
+    font-size: clamp(2.5rem, min(7.2vw, calc(var(--fold, 100svh) * 0.125)), 6.3rem);
+    font-weight: 500;
+    line-height: 0.96;
+    letter-spacing: -0.045em;
   }
-  .email {
-    display: inline-block;
-    margin-top: 32px;
-    font-size: clamp(1.1rem, 2.6vw, 1.5rem);
-    text-decoration: none;
-    border-bottom: 2px solid var(--sun);
-    padding-bottom: 2px;
-    overflow-wrap: anywhere;
+  .intro {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    max-width: 26em;
+    color: rgba(255, 255, 255, 0.93);
   }
-  .email:hover {
+  .overview {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .overview li {
+    position: relative;
+    border-top: 1px solid rgba(255, 255, 255, 0.42);
+    padding: 18px 16px 28px 0;
+    font-weight: 500;
+    font-size: 0.95rem;
+    line-height: 1.3;
+  }
+  .overview li::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    left: 0;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #1d1b18;
+    border: 1px solid rgba(255, 255, 255, 0.85);
+  }
+  .overview span {
+    display: block;
+    margin-top: 3px;
+    font-weight: 400;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.74);
+  }
+  .overview .here,
+  .overview .here span {
     color: var(--sun);
   }
-
-  /* ---------- Footer photo credits ---------- */
-  .credits {
-    flex-basis: 100%;
-    font-size: 0.75rem;
-    opacity: 0.8;
+  .overview .here::before {
+    background: var(--sun);
+    border-color: var(--sun);
   }
 
-  /* ---------- Scroll reveal ---------- */
+  /* ---------- Timeline: date rail on the left, story on the right ---------- */
+  .item,
+  .block {
+    --rail: 230px;
+  }
+  .item {
+    display: grid;
+  }
+  .when {
+    padding-top: 92px;
+  }
+  .month {
+    font-size: 1.6rem;
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+  }
+  .when .label {
+    display: block;
+    margin-top: 6px;
+  }
+  .here-tag {
+    display: inline-block;
+    margin-top: 12px;
+    background: var(--sun);
+    color: #141414;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    padding: 4px 9px;
+  }
+  .body {
+    position: relative;
+    min-width: 0;
+  }
+  h2 {
+    font-size: clamp(1.9rem, 4vw, 3.2rem);
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    max-width: 16em;
+  }
+  .lead {
+    margin-top: 24px;
+    font-size: 1.2rem;
+    line-height: 1.55;
+    max-width: 36em;
+  }
+  @media (min-width: 900px) {
+    .item {
+      grid-template-columns: var(--rail) 1fr;
+    }
+    .when {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      padding-right: 32px;
+    }
+    .body {
+      border-left: 1px solid var(--rule);
+      padding: 92px 0 92px 64px;
+    }
+    .body::before {
+      content: "";
+      position: absolute;
+      left: -6px;
+      top: 103px;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 2px solid var(--accent);
+    }
+    .here .body::before {
+      background: var(--sun);
+      border-color: var(--sun);
+      width: 15px;
+      height: 15px;
+      left: -8px;
+      top: 101px;
+    }
+  }
+  /* Phones and tablets: the line runs down the left edge, the date above each block. */
+  @media (max-width: 899px) {
+    .item {
+      border-left: 1px solid var(--rule);
+      padding-left: 24px;
+    }
+    .when {
+      position: relative;
+      padding-top: 64px;
+    }
+    .when::before {
+      content: "";
+      position: absolute;
+      left: -30px;
+      top: 71px;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 2px solid var(--accent);
+    }
+    .here .when::before {
+      background: var(--sun);
+      border-color: var(--sun);
+    }
+    .body {
+      padding: 20px 0 24px;
+    }
+  }
+
+  /* ---------- November 2026 ---------- */
+  .photos {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    margin-top: 44px;
+  }
+  .photos .big {
+    grid-row: span 2;
+  }
+  .photos :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .photos .small :global(img) {
+    aspect-ratio: 3 / 2;
+  }
+  .photos :global(.gray) {
+    filter: grayscale(1) contrast(1.05);
+  }
+  .facts {
+    display: grid;
+    gap: 0 48px;
+    margin-top: 48px;
+  }
+  @media (min-width: 900px) {
+    .facts {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .facts p {
+    padding: 20px 0;
+    border-top: 1px solid var(--rule);
+    color: var(--muted);
+  }
+  .facts strong {
+    display: block;
+    color: var(--text);
+    font-weight: 500;
+    font-size: 1.25rem;
+    letter-spacing: -0.015em;
+    margin-bottom: 4px;
+  }
+  .boots {
+    position: relative;
+    margin-top: 56px;
+    color: #fff;
+  }
+  .boots :global(img) {
+    width: 100%;
+    height: 660px;
+    object-fit: cover;
+    object-position: 50% 82%;
+  }
+  .boots-shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, 0.7) 100%);
+  }
+  .boots p {
+    position: absolute;
+    left: 36px;
+    right: 36px;
+    bottom: 32px;
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    font-weight: 500;
+    letter-spacing: -0.045em;
+    line-height: 1;
+  }
+  .weeks {
+    margin-top: 56px;
+  }
+  .strip {
+    display: grid;
+    grid-template-columns: repeat(52, 1fr);
+    gap: 3px;
+    margin: 14px 0 16px;
+  }
+  .strip i {
+    height: 30px;
+    background: #e6e2d8;
+  }
+  .strip i.on {
+    background: var(--accent);
+  }
+  .weeks-cap {
+    font-size: 1.2rem;
+    line-height: 1.5;
+    max-width: 34em;
+  }
+  .weeks-cap strong {
+    font-weight: 500;
+  }
+
+  /* ---------- December 2026: the money ---------- */
+  .needs {
+    margin-top: 36px;
+    max-width: 620px;
+  }
+  .needs li {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 15px 0;
+    border-top: 1px solid var(--rule);
+    font-size: 1.15rem;
+  }
+  .needs li:last-child {
+    border-bottom: 1px solid var(--rule);
+  }
+  .needs .num {
+    font-weight: 500;
+  }
+  .goal {
+    margin-top: 44px;
+    max-width: 620px;
+  }
+  .goal-big {
+    font-size: clamp(2.6rem, 5.4vw, 4.2rem);
+    font-weight: 500;
+    letter-spacing: -0.05em;
+    line-height: 1;
+  }
+  .goal-big span {
+    font-size: 0.4em;
+    color: var(--muted);
+    letter-spacing: -0.01em;
+  }
+  .bar {
+    height: 4px;
+    background: var(--rule);
+    margin: 16px 0 10px;
+  }
+  .bar span {
+    display: block;
+    height: 100%;
+    background: var(--sun);
+  }
+  .ctas {
+    margin-top: 28px;
+    display: flex;
+    gap: 28px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .wide :global(img) {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    margin-top: 44px;
+  }
+
+  /* ---------- Blocks after the timeline ---------- */
+  .block {
+    display: grid;
+    gap: 12px;
+    padding-top: 128px;
+  }
+  @media (min-width: 900px) {
+    .block {
+      grid-template-columns: var(--rail) 1fr;
+      gap: 0;
+    }
+  }
+  .block .lead {
+    margin-top: 20px;
+  }
+  .inout {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0 24px;
+    margin-top: 56px;
+  }
+  .inout > div {
+    border-top: 1px solid var(--text);
+    padding-top: 16px;
+  }
+  .inout .big {
+    margin-top: 6px;
+    font-size: clamp(1.9rem, 4.4vw, 3.2rem);
+    font-weight: 500;
+    letter-spacing: -0.04em;
+    line-height: 1.05;
+  }
+  .more {
+    margin-top: 40px;
+  }
+
+  .posts {
+    display: grid;
+    gap: 32px;
+  }
+  @media (min-width: 720px) {
+    .posts {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+  }
+  .posts a {
+    text-decoration: none;
+  }
+  .posts :global(img) {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    margin-bottom: 14px;
+  }
+  .posts time {
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+  .posts h3 {
+    margin-top: 4px;
+    font-size: 1.25rem;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+  }
+  .posts a:hover h3 {
+    color: var(--accent);
+  }
+
+  .quote {
+    font-size: clamp(1.7rem, 3.4vw, 2.6rem);
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    max-width: 22em;
+  }
+  .cite {
+    margin-top: 18px;
+    color: var(--muted);
+  }
+  .who .lead {
+    margin-top: 36px;
+  }
+
+  /* ---------- Donate ---------- */
+  .give {
+    margin-top: 128px;
+    background: var(--accent);
+    color: #fff;
+  }
+  .give-inner {
+    padding: 120px 0;
+    display: grid;
+    gap: 40px;
+  }
+  @media (min-width: 900px) {
+    .give-inner {
+      grid-template-columns: 1fr 1fr;
+      gap: 88px;
+      align-items: end;
+    }
+  }
+  .give h2 {
+    font-size: clamp(2.6rem, 6vw, 5rem);
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    max-width: none;
+  }
+  .sub {
+    margin-top: 22px;
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.85);
+    max-width: 24em;
+  }
+
+  /* ---------- Funds, companies, clubs ---------- */
+  .partners {
+    padding-top: 96px;
+  }
+  .partner-grid {
+    display: grid;
+    margin-top: 20px;
+  }
+  @media (min-width: 720px) {
+    .partner-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+    }
+  }
+  .partner-grid > div {
+    border-top: 1px solid var(--rule);
+    padding: 20px 0 28px;
+  }
+  .partner-grid h3 {
+    font-size: 1.35rem;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+  .partner-grid p {
+    color: var(--muted);
+    margin: 6px 0 14px;
+  }
+
+  .credits {
+    margin-top: 6px;
+    font-size: 0.75rem;
+  }
+  .credits a {
+    color: inherit;
+  }
+
+  /* ---------- Phones ---------- */
+  @media (max-width: 899px) {
+    .boots :global(img) {
+      height: 480px;
+    }
+    .boots p {
+      left: 20px;
+      right: 20px;
+      bottom: 22px;
+    }
+  }
+  @media (max-width: 719px) {
+    .hero :global(.hero-img) {
+      object-position: 35% 50%;
+    }
+    .hero-shade {
+      background: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.45) 0%,
+        rgba(0, 0, 0, 0) 20%,
+        rgba(0, 0, 0, 0.3) 40%,
+        rgba(0, 0, 0, 0.62) 62%,
+        rgba(0, 0, 0, 0.85) 100%
+      );
+    }
+    .hero-content {
+      gap: 14px;
+      padding-bottom: 28px;
+    }
+    .hero-date {
+      font-size: 0.875rem;
+      margin-bottom: 10px;
+    }
+    .intro {
+      font-size: 1rem;
+    }
+    .overview {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .overview li {
+      padding: 12px 10px 16px 0;
+      font-size: 0.9rem;
+    }
+    .overview span {
+      font-size: 0.8125rem;
+    }
+    .strip {
+      grid-template-columns: repeat(26, 1fr);
+      gap: 2px;
+    }
+    .strip i {
+      height: 18px;
+    }
+    .inout {
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .inout > div:last-child {
+      grid-column: 1 / -1;
+    }
+    .give-inner {
+      padding: 88px 0;
+    }
+    .photos {
+      gap: 10px;
+    }
+  }
+
+  /* ---------- Fade in on scroll (only when JavaScript runs) ---------- */
   :global(.js) .reveal {
     opacity: 0;
     transform: translateY(24px);

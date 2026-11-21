@@ -1,0 +1,177 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SeasonSquares from "../components/SeasonSquares.astro";
+import { startBudget, publicFinances, loadSessions, euro } from "../transparency";
+import { money, dayLabel, byCategory } from "../dashboard/finances";
+import "../styles/page.css";
+
+const budget = startBudget();
+const finances = await publicFinances();
+const sessions = loadSessions();
+
+// Spending is listed line by line. Money in only as totals per category,
+// so no donor's name or gift ever shows up on the site.
+const spending = finances.transactions.filter((t) => t.type === "out").reverse();
+const income = byCategory(finances.transactions, "in").filter((c) => c.amount > 0);
+---
+
+<BaseLayout
+  title="Where it goes – Samba Street"
+  description="Every euro in and out, and every training session of Samba Street's season at Nkazimlo Primary School in Khayelitsha, Cape Town."
+>
+  <SiteHeader current="where" />
+
+  <main class="wrap">
+    <section class="page-head">
+      <h1>Where it goes<span class="dot">.</span></h1>
+      <p class="lead">Every euro in and out, and every session of the season.</p>
+    </section>
+
+    <section class="rows">
+      <div class="row">
+        <h2>The start budget</h2>
+        <div>
+          <p class="text">What has to be there on the first day of training, in March 2027.</p>
+          <table class="table">
+            <tbody>
+              {
+                budget.items.map((i) => (
+                  <tr>
+                    <td>{i.item}</td>
+                    <td class="amt">{euro(i.amount)}</td>
+                  </tr>
+                ))
+              }
+              <tr class="total">
+                <td>Total</td>
+                <td class="amt">{euro(budget.total)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="row">
+        <h2>Money in and out</h2>
+        <div>
+          <div class="figures">
+            <div>
+              <p class="label">Money in</p>
+              <p class="big">{money(finances.moneyIn)}</p>
+            </div>
+            <div>
+              <p class="label">Money out</p>
+              <p class="big">{money(finances.moneyOut)}</p>
+            </div>
+            <div>
+              <p class="label">Balance</p>
+              <p class="big">{money(finances.balance)}</p>
+            </div>
+          </div>
+          {
+            finances.transactions.length === 0 ? (
+              <p class="text muted spaced">No money in or out yet.</p>
+            ) : (
+              <>
+                {spending.length > 0 && (
+                  <div class="scroll spaced">
+                    <table class="table">
+                      <caption class="label">Money out</caption>
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>What</th>
+                          <th>For</th>
+                          <th class="amt">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {spending.map((t) => (
+                          <tr>
+                            <td class="nowrap">{dayLabel(t.date)}</td>
+                            <td>{t.description}</td>
+                            <td>{t.category}</td>
+                            <td class="amt">{money(t.amount, true)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {income.length > 0 && (
+                  <table class="table spaced">
+                    <caption class="label">Money in</caption>
+                    <tbody>
+                      {income.map((c) => (
+                        <tr>
+                          <td>{c.name}s</td>
+                          <td class="amt">{money(c.amount, true)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </>
+            )
+          }
+        </div>
+      </div>
+
+      <div class="row">
+        <h2>The season</h2>
+        <div>
+          <p class="text">
+            Every session gets a square. Each one is logged: date, players, minutes and drills.
+          </p>
+          <SeasonSquares />
+          {
+            sessions.length === 0 ? (
+              <p class="text muted spaced">The first session is in March 2027.</p>
+            ) : (
+              <div class="scroll spaced">
+                <table class="table">
+                  <caption class="label">Training log</caption>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th class="amt">Players</th>
+                      <th class="amt">Minutes</th>
+                      <th>Drills</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sessions.map((s) => (
+                      <tr>
+                        <td class="nowrap">{dayLabel(s.date)}</td>
+                        <td class="amt">{s.players ?? "–"}</td>
+                        <td class="amt">{s.minutes ?? "–"}</td>
+                        <td>{s.drills}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
+          }
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter line />
+</BaseLayout>
+
+<style>
+  .spaced {
+    margin-top: 32px;
+  }
+  caption {
+    text-align: left;
+    padding-bottom: 8px;
+  }
+  .nowrap {
+    white-space: nowrap;
+  }
+</style>

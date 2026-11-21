@@ -1,0 +1,19 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import "../styles/page.css";
+---
+
+<BaseLayout title="Page not found – Samba Street" noindex>
+  <SiteHeader />
+
+  <main class="wrap">
+    <section class="page-head">
+      <h1>This page doesn't exist<span class="dot">.</span></h1>
+      <p class="lead"><a class="btn-line" href="/">Back to the story →</a></p>
+    </section>
+  </main>
+
+  <SiteFooter line />
+</BaseLayout>

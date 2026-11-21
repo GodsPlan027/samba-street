@@ -6,20 +6,21 @@ Background for anyone (or any new chat) working on this project. See [README.md]
 
 Samba Street is a charity football academy.
 
-- It will partner with **one school**. No school has been chosen yet; we are still looking.
-- **Boys only**: boys aged 9–12 from that school can sign up, and we **select 20 of them**. The school gives permission for its pupils to sign up; Samba Street organises the whole sign-up and selection. How players are selected is still open (to be discussed with the school).
-- We provide **training twice a week**, enter **tournaments now and then**, and provide **the gear the kids need**.
+- The partner school is **Nkazimlo Primary School** in Khayelitsha (found Nov 2026 through Khanyisa, a local teacher). The school has four teams (boys U10, U12, U14, girls U14), about 80 kids.
+- **Selection day in March 2027:** every boy from the U10 and U12 teams can take part; we form one team of about 20. The school's coach and a new coach, both paid per session, train them **twice a week** for the whole school year.
+- All four teams get gear, the girls too. Tournaments are planned about every two months.
 - Everything is **completely free** for the kids, their parents and the school.
+- **Stichting Samba Street** is registered in the Netherlands in December 2026 (KvK, bank account, then ANBI). The legal name is used on the site; "Gods Plan" is not.
 
-The website's current job is to **explain the project and build trust** with possible partner schools, parents and sponsors.
+The website's job from December 2026: **fundraising in the Netherlands** (individuals, funds, companies, football clubs). One story from top to bottom; at the end a visitor knows "this is real, it's urgent, my money makes a direct difference, and I can see exactly where it goes". The core message is **joy and consistency**; growing further is a chance, not a promise.
 
 ## Decisions made so far
 
 - **Language:** English only.
 - **Tech:** Astro static site, plain CSS (no Tailwind), no JavaScript framework.
-- **No interactive features yet:** no forms, sign-ups or similar. These come later, once a partner school is found. Contact is only a `mailto:` email link.
+- **No forms or sign-ups.** The only interactive part is the donate box (monthly/once and an amount, radio buttons plus a small script that sets the button's link). Contact is a `mailto:` email link.
 - **Branding:** there was no existing logo or colours, so we designed our own (see below).
-- **Structure:** one main page plus the **Journal** (news and blog, added Oct 2026, hidden until the first post, see below). The first version had Home, Program and About pages. The user asked to cut it down to one page; keep the information on the homepage.
+- **Structure:** the homepage tells the whole story. Next to it: `/donate/` (plus `/donate/thank-you/`), `/where-it-goes/`, `/foundation/`, and the **Journal** (hidden until the first post, see below).
 
 ## Design direction (user feedback)
 
@@ -40,18 +41,21 @@ The website's current job is to **explain the project and build trust** with pos
 - Logo: a round green-and-yellow badge with a celebrating player with dreadlocks (inspired by Tshabalala's 2010 goal) and "SAMBA STREET" around it. Made with ChatGPT. The full-size original (1254×1254 PNG) is `brand/samba-street-logo.png`; the site uses `public/images/logo.png` (also `logo-128.png`, `favicon.png`, `apple-touch-icon.png`). A clean vector version is still to come.
 - Sections fade in as you scroll (`.reveal`). This only happens when JS runs: the layout adds a `js` class to `<html>`, so the content still shows without JS.
 
-## Current page (src/pages/index.astro), top to bottom
+## Fundraising site (Nov 2026, branch `fundraising`)
 
-1. A full-width hero photo (the user rates it 10/10, keep it) with the logo badge top-left (Journal and Contact links top-right), the headline "Free football for kids who love the game." and a short intro that starts with "Samba Street is a non-profit football academy in Khayelitsha, Cape Town." A separate location line above the headline was tried (faded, yellow, green label) and removed: hard to read or "ugly".
-2. Key facts: 20 players · 9–12 years old · 2× training a week · R0 cost (rand, not euro: the academy is in South Africa).
-3. About, with two photos (Khayelitsha football centre and a portrait).
-4. How it works: 3 titled steps (We partner → We build a team → We develop), each with a short grey text, next to a sticky pitch photo. Three redesigns were mocked up earlier (photo timeline, green block, "many to 20" dot grid) and the user chose to **keep this layout**. Don't redesign it unless asked.
-5. What we provide: training, tournaments and gear, as photo tiles (swipeable on phones). No intro sentence under the heading, and no captions under photos anywhere.
-6. Latest from the journal: green block with the newest post large and up to two smaller ones. Hidden until the first post is published.
-7. Callout: "Now looking for a partner school." with the email link, over a street photo.
-8. Footer: "Non-profit football academy · Khayelitsha, Cape Town" and the photo credits.
+- **Layout C, "Season"**, chosen by the user from three mockups on 2026-11-21: a timeline with a date column on the left. The user called it "fire" and said the layout is good; only small things and the text remain. Don't redesign it unless asked.
+- **Hero:** the full-width `hero.jpg` photo (taken from option A), with "11 June 2010 · Soccer City, Johannesburg", the headline "Bring back Samba football.", the intro about Tshabalala's goal, and a mini-timeline (2010 → Dec 2027). **All hero text must fit on the first screen when the page opens** (the user's request): the hero is `min-height: var(--fold, 100svh)` and the headline size depends on the screen height. Check short laptop windows (1280×620, 1470×740) and phones (390×664, 375×548). The big badge from the green mockup hero was dropped because it was too busy over the photo.
+- **Homepage, top to bottom:** hero → November 2026 (what we saw: photos, six observations, "No boots, no match.", 2 of 52 weeks) → December 2026 "We are here" (start budget, raised vs goal, Donate) → March 2027 (selection day, twice a week, every school week) → every two months (tournaments) → December 2027 → 2028 → Follow the season (squares, money in/out, sessions) → From the journal (once there are posts) → Who we are (Vince's quote, Khanyisa) → green donate block → funds, companies and clubs (mailto) → footer.
+- **Other pages:** `/donate/` (donate box, goal, short rows), `/donate/thank-you/` (where the payment provider sends donors; noindex), `/where-it-goes/` (start budget, money in and out, season squares and training log), `/foundation/` (registration details; empty fields are left out until known), `404`.
+- **Data:** `src/site.ts` holds `FOUNDATION`, `DONATE_LINKS`, `START_BUDGET` (null amounts show "€XX") and `SEASON_PLAN`. `data/finances.csv` and `data/sessions.csv` are read at build time by `src/transparency.ts`; a bad row stops the build. Money in is only shown as totals per category, never per donor.
+- **Donate buttons** go to `/donate/`. While a payment link is empty, the button opens an email with the chosen amount. Payment provider not chosen yet: it needs monthly giving without a server (Stripe Payment Links can do this; Mollie payment links can't do recurring).
+- **Names:** the user confirmed (Nov 2026) that the school and Khanyisa agree to being named, including the critical observations about the school's coach.
+- **Photos:** the user chose to keep the stock photos without a "stand-in photos" note.
+- **Test site:** https://test.sambastreet.charity, from the repo `Beekiii/samba-street-test` (git remote `test`, update with `git push test fundraising:main`). The repo variable `NOINDEX=1` makes `BaseLayout` add a noindex tag. DNS: `CNAME test → beekiii.github.io.` at Namecheap.
+- **Going live:** only after the registration. Fill in `FOUNDATION`, `DONATE_LINKS` and `START_BUDGET`, then merge `fundraising` into `main` (steps in README). Afterwards delete the test repo and its DNS record. Don't claim ANBI status before the Belastingdienst grants it.
+- **Text round still to do** (the user wants critical feedback first, then implement), for example "registered … this month", "every two months" vs "around every two months", and translating Vince's quote with his approval.
 
-Header and footer are shared components (`src/components/SiteHeader.astro`, `SiteFooter.astro`). The Journal link only shows once there is a published post.
+Header and footer are shared components (`src/components/SiteHeader.astro`, `SiteFooter.astro`). The header has Our story, Where it goes, Journal (once there are posts) and a yellow Donate button; on phones the links fold into a "Menu" (`<details>`, no JavaScript needed).
 
 ## Journal (added Oct 2026)
 
@@ -78,13 +82,13 @@ Header and footer are shared components (`src/components/SiteHeader.astro`, `Sit
 ## Partnership details (confirmed Oct 2026)
 
 - **Training:** twice a week, after school, on the partner school's own field. Days and times are agreed with the school.
-- **Coaches:** every session is led by trained coaches (who exactly is not decided yet).
-- **Tournaments:** occasional only. Never promise a fixed frequency (not "every month" or similar).
+- **Coaches:** the school's coach and a new coach, both paid per session (Nov 2026 briefing).
+- **Tournaments:** the Nov 2026 briefing says about every two months. Whether the site says "every" or "around every" two months is still open; don't promise more than that.
 - **Kit:** every player gets a home and away kit plus the gear they need. The kit design is "City Life" (`brand/kits-city-life.png`): home is Cape Town yellow, away is Table Mountain green. The design shows an adidas logo; the user chose to keep it on the vision board.
 - **What we ask of the school:** permission for its pupils to take part, one contact teacher, and use of the school field two afternoons a week.
 - **Timing:** starts **March 2027** and runs until at least the end of the 2027 school year.
 - **Contact:** email `hello@sambastreet.charity` plus a WhatsApp number (shown on the vision board, not on the website).
-- **Website mismatch to fix later:** the site still says "kids" without "boys only", shows a girl in How it works, and doesn't mention trained coaches or the March 2027 start.
+- The old site on `main` still says "Now looking for a partner school"; the `fundraising` branch replaces it.
 
 ## Vision board for principals
 
@@ -109,7 +113,7 @@ Header and footer are shared components (`src/components/SiteHeader.astro`, `Sit
 
 ## Photos
 
-Temporary stock photos in `public/images/`, until we have our own. The up-to-date list with sources and licences is in the **Photos table in README.md**. Two of the photos come from Wikimedia (CC BY-SA) and **need a credit**, which is in the page footer. Remove that credit once those photos are replaced. Only use photos of children with written permission from their parents.
+Temporary stock photos in `src/assets/site/` (on the `fundraising` branch; `public/images/` on `main`), until we have our own. The up-to-date list with sources and licences is in the **Photos table in README.md**. The Khayelitsha centre photo comes from Wikimedia (CC BY-SA) and **needs a credit**, which is in the homepage footer. Remove that credit once the photo is replaced. Only use photos of children with written permission from their parents.
 
 Photo choices (Oct 2026): the user keeps the hero, the girl on the pitch in How it works, the About photos and the Tournaments goalkeeper photo. Training (team drill) and Gear (boy pulling up his socks) were replaced because the old ones didn't match the text.
 
@@ -118,11 +122,11 @@ Unsplash blocks scripted downloads from its website. Downloading straight from `
 ## Still open / to fill in
 
 - **Contact email:** `hello@sambastreet.charity` (set in `src/site.ts`). It is a free Google Workspace alias of the user's own mailbox, not a separate account.
-- **Partner school:** name, training days and location are unknown until a school is found.
+- **Partner school:** Nkazimlo Primary School. Training days and times are still to be agreed with the school.
 - **Real photos** of our own kids and team, to replace the stock photos.
 - **Team:** no names yet. The old About page had placeholder names, and it has been removed.
 - **Don't promise things the user hasn't confirmed.** Earlier drafts invented details: specific kit items (boots, shin guards), "kit to keep", "transport is on us", paying tournament entry fees, and selection "on enthusiasm and attitude". These were removed. Gear is now described generally, as "everything needed to play". Check with the user before adding specifics like these.
-- **Online** at https://sambastreet.charity via GitHub Pages (public repo `GodsPlan027/samba-street`). Every push to `main` deploys through `.github/workflows/deploy.yml`. Domain is at Namecheap; DNS details are in README.
+- **Online** at https://sambastreet.charity via GitHub Pages (public repo `GodsPlan027/samba-street`). Every push to `main` deploys through `.github/workflows/deploy.yml`. Domain is at Namecheap; DNS details are in README. The new site is tested at https://test.sambastreet.charity (see Fundraising site).
 
 ## Finance dashboard
 

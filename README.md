@@ -1,6 +1,8 @@
 # Samba Street website
 
-Website for Samba Street, a free football academy for 20 kids aged 9–12. Built with [Astro](https://astro.build) as a static site.
+Website for Stichting Samba Street, a football academy at Nkazimlo Primary School in Khayelitsha, Cape Town. Built with [Astro](https://astro.build) as a static site.
+
+The homepage tells one story along a timeline: what we saw (November 2026), where we are now (December 2026, with the start budget and a donate button), the plan from March 2027, and how to follow the season. Other pages: Donate, Where it goes (every euro and every session), About the foundation, and the Journal.
 
 ## Run it locally
 
@@ -15,36 +17,78 @@ npm run preview  # preview the built site
 
 | What | File |
 | --- | --- |
+| Foundation details (KvK, RSIN, IBAN, address, board, ANBI) | `FOUNDATION` in `src/site.ts` |
+| Payment links behind the donate buttons | `DONATE_LINKS` in `src/site.ts` |
+| Start budget (the amounts on the homepage and Where it goes) | `START_BUDGET` in `src/site.ts` |
+| Planned sessions per month (the squares) | `SEASON_PLAN` in `src/site.ts` |
+| Money in and out, shown on the site | `data/finances.csv` |
+| Training log, shown on the site | `data/sessions.csv` |
 | Contact email, site description | `src/site.ts` |
 | Colors and font | top of `src/styles/global.css` |
-| All page text | `src/pages/index.astro` |
+| Homepage text | `src/pages/index.astro` |
+| Other pages | `src/pages/donate/`, `src/pages/where-it-goes.astro`, `src/pages/foundation.astro` |
+| Donate box (monthly/once, amounts) | `src/components/DonateBox.astro` |
 | Journal posts | In the browser via Pages CMS (see [Journal](#journal) below). Files: `src/content/journal/` (text), `src/assets/journal/` (photos) |
-| Journal pages and design | `src/pages/journal/` (list and post pages), the green strip in `src/pages/index.astro` |
+| Journal pages and design | `src/pages/journal/` (list and post pages), "From the journal" in `src/pages/index.astro` |
 | Header and footer | `src/components/SiteHeader.astro`, `src/components/SiteFooter.astro` |
 | Logo and icons | `brand/samba-street-logo.png` (full-size original), `public/images/logo.png`, `public/images/logo-128.png` (header), `public/favicon.png`, `public/apple-touch-icon.png` |
 
+## Donating
+
+Every donate button leads to `/donate/`. There, people choose monthly or once and an amount, and the button takes them to the payment page of the payment provider.
+
+- The payment links go in `DONATE_LINKS` in `src/site.ts`: one per choice (monthly or once, times €10, €25, €50 or "other", where people type the amount). Make them in the payment provider's dashboard once the foundation has its bank account.
+- After paying, the payment provider should send people to `https://sambastreet.charity/donate/thank-you/` (set this in the payment link's settings).
+- **While a link is empty**, that button opens an email to us instead ("I'd like to give €25 a month"), so the buttons always work.
+- The IBAN shows under the donate box and in the footer as soon as it's filled in.
+
+## Money and sessions on the site
+
+The numbers on the homepage and on Where it goes come from two files, read when the site is built:
+
+- `data/finances.csv`: columns `date,type,amount,category,description`, like the private dashboard. `type` is `in` or `out`, and the categories are in `src/dashboard/config.ts`. Money out is listed line by line on the site. Money in only shows as a total per category, so no donor's name ever appears.
+- `data/sessions.csv`: columns `date,players,minutes,drills`, one row per training session. Each session fills a square. Write the number of players, never names.
+
+A mistake in either file (for example a date the site can't read) stops the build, so wrong numbers never go online; the old version stays up until it's fixed. The private dashboard still reads the Google Sheet. Copy new rows into `data/finances.csv` to show them on the site.
+
+## Going live after the registration
+
+The new site is on the branch `fundraising`, and online for testing at **https://test.sambastreet.charity** (hidden from search engines). The live site on sambastreet.charity is still the old one, from `main`. Once Stichting Samba Street is registered:
+
+1. Fill in `FOUNDATION` in `src/site.ts`: KvK number, RSIN, IBAN, address and board. Set `anbi: true` only once the Belastingdienst has granted ANBI status.
+2. Fill in the payment links in `DONATE_LINKS`, and the amounts in `START_BUDGET`.
+3. Check everything on the test site.
+4. Merge `fundraising` into `main` and push. The site on sambastreet.charity updates within a few minutes.
+5. Afterwards, delete the test repo and the `test` DNS record (see below), so nobody else can take over that address.
+
+### The test site
+
+- It's a copy of this repo, `Beekiii/samba-street-test`, published with GitHub Pages on `test.sambastreet.charity`.
+- To update it, push the branch there: `git push test fundraising:main`. It rebuilds in about a minute.
+- The repo variable `NOINDEX=1` adds a "noindex" tag to every page, so search engines skip the test site. The live site doesn't have that variable.
+- DNS at Namecheap: a `CNAME` record `test` pointing to `beekiii.github.io.`
+
 ## Photos
 
-The photos in `public/images/` are placeholders until the academy has its own photos. Replace them by keeping the same file names. Only use photos of children with written permission from their parents.
+The photos in `src/assets/site/` are placeholders until the academy has its own photos. The site makes smaller versions for phones automatically. Replace a photo by keeping the same file name. Only use photos of kids with written permission from their parents.
 
 | File | Used for | Source | License |
 | --- | --- | --- | --- |
-| `hero.jpg` | Top of the page | Thato Moiketsi, Pexels | Pexels License (free) |
-| `khayelitsha-centre.jpg` | About | Andrea Grips, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Khayelitsha_Football_for_Hope_Centre.jpg) | CC BY-SA 3.0 – credit required |
-| `portrait.jpg` | About | Pexels (photo 40134497) | Pexels License (free) |
-| `khayelitsha-pitch.jpg` | How it works | Ed Suter, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Young_girl_practices_her_soccer_skills,_Khayelitsha,_Cape_Town.jpg) | CC BY-SA 4.0 – credit required |
-| `training.jpg` | Training tile | [Pexels (photo 28735311)](https://www.pexels.com/photo/28735311/) | Pexels License (free) |
-| `tournament.jpg` | Tournaments tile | Pexels (photo 38717055) | Pexels License (free) |
-| `gear.jpg` | Gear tile | [Pexels (photo 11326785)](https://www.pexels.com/photo/11326785/) | Pexels License (free) |
-| `street-sunset.jpg` | Partner school section | Rea Mapelele, Pexels | Pexels License (free) |
+| `hero.jpg` | Top of the homepage | Thato Moiketsi, Pexels | Pexels License (free) |
+| `training.jpg` | November 2026 | [Pexels (photo 28735311)](https://www.pexels.com/photo/28735311/) | Pexels License (free) |
+| `tyres.jpg` | November 2026 | [Pexels (photo 6156594)](https://www.pexels.com/photo/6156594/) | Pexels License (free) |
+| `ball.jpg` | November 2026 | [Pexels (photo 701773)](https://www.pexels.com/photo/701773/) | Pexels License (free) |
+| `boots.jpg` | No boots, no match | [Pexels (photo 38468657)](https://www.pexels.com/photo/38468657/) | Pexels License (free) |
+| `khayelitsha-centre.jpg` | March 2027 | Andrea Grips, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Khayelitsha_Football_for_Hope_Centre.jpg) | CC BY-SA 3.0 – credit required |
+| `tournament.jpg` | Tournaments | Pexels (photo 38717055) | Pexels License (free) |
 
-The two Wikimedia photos need a credit, which is in the page footer. Remove that footer line once those photos are replaced.
+The Wikimedia photo needs a credit, which is in the homepage footer. Remove that line once the photo is replaced.
 
 ## Journal
 
 News and stories live at **https://sambastreet.charity/journal**. Posts are written in the browser with [Pages CMS](https://pagescms.org), a free editor that saves straight into this GitHub repo. No code needed.
 
-The Journal stays off the website until the first post is published: until then there is no /journal page, no Journal link in the header and no "Latest from the journal" block on the homepage. Publishing the first post (with **Draft** off) switches all of it on automatically, so keep **Draft** on while you're trying things out.
+The Journal stays off the website until the first post is published: until then there is no /journal page, no Journal link in the header or footer and no "From the journal" block on the homepage. Publishing the first post (with **Draft** off) switches all of it on automatically, so keep **Draft** on while you're trying things out.
 
 ### One-time setup
 
@@ -122,4 +166,6 @@ The site is live at **https://sambastreet.charity**, hosted for free on GitHub P
 
 ## Still to fill in
 
-- Partner school name, training days and location (once known)
+- Foundation details, payment links and start budget amounts (see [Going live after the registration](#going-live-after-the-registration))
+- Training days and times at Nkazimlo Primary School (agreed with the school)
+- Our own photos, to replace the placeholders

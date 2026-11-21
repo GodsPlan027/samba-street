@@ -1,0 +1,37 @@
+---
+// The payment provider sends donors here after paying.
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import SiteHeader from "../../components/SiteHeader.astro";
+import SiteFooter from "../../components/SiteFooter.astro";
+import "../../styles/page.css";
+---
+
+<BaseLayout title="Thank you – Samba Street" noindex>
+  <SiteHeader />
+
+  <main class="wrap">
+    <section class="page-head">
+      <h1>Thank you<span class="dot">.</span></h1>
+      <p class="lead">
+        Your gift helps the season at Nkazimlo Primary School start in March. Every session and
+        every euro is on the site, so you can follow what it does.
+      </p>
+      <div class="ctas">
+        <a class="btn" href="/where-it-goes/">Where it goes →</a>
+        <a class="btn-line" href="/">Back to the story</a>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter line />
+</BaseLayout>
+
+<style>
+  .ctas {
+    margin-top: 36px;
+    display: flex;
+    gap: 28px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+</style>

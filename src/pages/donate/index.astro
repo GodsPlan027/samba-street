@@ -1,0 +1,143 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import SiteHeader from "../../components/SiteHeader.astro";
+import SiteFooter from "../../components/SiteFooter.astro";
+import DonateBox from "../../components/DonateBox.astro";
+import { CONTACT_EMAIL, FOUNDATION } from "../../site";
+import { goal, euro } from "../../transparency";
+import { money } from "../../dashboard/finances";
+import "../../styles/page.css";
+
+const progress = await goal();
+---
+
+<BaseLayout
+  title="Donate – Samba Street"
+  description="Help the season at Nkazimlo Primary School in Khayelitsha, Cape Town start in March 2027, and keep it going all year."
+>
+  <SiteHeader current="donate" />
+
+  <main class="wrap">
+    <section class="donate-top">
+      <div>
+        <h1>The season starts in March<span class="dot">.</span></h1>
+        <p class="sub">Help it start on time, and keep it going all year with a monthly gift.</p>
+        <div class="goal">
+          <p class="goal-big num">
+            {money(progress.raised)} <span>of {euro(progress.total)} raised</span>
+          </p>
+          <div class="bar"><span style={`width: ${progress.percent}%`}></span></div>
+          <p class="label">{progress.donations}</p>
+        </div>
+      </div>
+      <div>
+        <DonateBox tone="light" />
+      </div>
+    </section>
+
+    <section class="rows">
+      <div class="row">
+        <h2>Where it goes</h2>
+        <div>
+          <p class="text">
+            Gear, coaches and tournaments for the team at Nkazimlo Primary School in Khayelitsha,
+            Cape Town. Every euro in and out is on the site.
+          </p>
+          <a class="btn-line" href="/where-it-goes/">Where it goes →</a>
+        </div>
+      </div>
+      <div class="row">
+        <h2>Monthly gifts</h2>
+        <div>
+          <p class="text">
+            A monthly gift keeps the season going all year. To change or stop it, email <a
+              href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a
+            >.
+          </p>
+        </div>
+      </div>
+      {
+        FOUNDATION.anbi && (
+          <div class="row">
+            <h2>Tax</h2>
+            <div>
+              <p class="text">
+                {FOUNDATION.name} has ANBI status, so your gift is tax-deductible in the Netherlands.
+              </p>
+            </div>
+          </div>
+        )
+      }
+      <div class="row">
+        <h2>As an organisation</h2>
+        <div>
+          <p class="text">
+            Funds, companies and football clubs: email <a href={`mailto:${CONTACT_EMAIL}`}
+              >{CONTACT_EMAIL}</a
+            >. We'll send the project plan and budget.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter line />
+</BaseLayout>
+
+<style>
+  .donate-top {
+    display: grid;
+    gap: 48px;
+    padding: 88px 0 96px;
+  }
+  @media (min-width: 900px) {
+    .donate-top {
+      grid-template-columns: 1fr 1fr;
+      gap: 88px;
+      align-items: end;
+    }
+  }
+  h1 {
+    font-size: clamp(2.6rem, 6vw, 5rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+  }
+  .sub {
+    margin-top: 22px;
+    font-size: 1.2rem;
+    color: var(--muted);
+    max-width: 24em;
+  }
+  .goal {
+    margin-top: 44px;
+    max-width: 520px;
+  }
+  .goal-big {
+    font-size: clamp(2.2rem, 4.4vw, 3.4rem);
+    font-weight: 500;
+    letter-spacing: -0.05em;
+    line-height: 1;
+  }
+  .goal-big span {
+    font-size: 0.42em;
+    color: var(--muted);
+    letter-spacing: -0.01em;
+  }
+  .bar {
+    height: 4px;
+    background: var(--rule);
+    margin: 16px 0 10px;
+  }
+  .bar span {
+    display: block;
+    height: 100%;
+    background: var(--sun);
+  }
+  .text a {
+    text-decoration-color: var(--sun);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+  }
+</style>

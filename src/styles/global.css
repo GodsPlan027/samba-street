@@ -8,7 +8,7 @@
   --sun: #f5c400; /* logo yellow, used sparingly */
 
   --font: "Inter Tight", system-ui, -apple-system, sans-serif;
-  --max: 1080px;
+  --max: 1200px;
 }
 
 *,
@@ -54,4 +54,62 @@ a {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
+}
+
+/* ---------- Shared bits used on several pages ---------- */
+
+/* The yellow full stop at the end of big headings. */
+.dot {
+  color: var(--sun);
+}
+
+/* Small grey label above or beside a block. */
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* Numbers that line up in columns. */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Buttons: rectangular, yellow. The line version is a link with a yellow underline. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  background: var(--sun);
+  color: #141414;
+  font-weight: 500;
+  line-height: 1.2;
+  padding: 12px 20px;
+  text-decoration: none;
+}
+.btn:hover {
+  background: #ffd426;
+}
+.btn-sm {
+  padding: 9px 16px;
+}
+.btn-line {
+  display: inline-block;
+  border-bottom: 2px solid var(--sun);
+  padding-bottom: 2px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.btn-line:hover {
+  color: var(--accent);
+}
+
+/* Hidden on screen, still read out by screen readers. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
