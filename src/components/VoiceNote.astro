@@ -1,0 +1,268 @@
+---
+// A quote shown as a voice message: a play button, a waveform and the time,
+// with the transcript underneath. Pressing play doesn't play sound: it plays the
+// transcript, word by word, along with the waveform. Without JavaScript the
+// transcript simply shows in full.
+
+interface Props {
+  /** The quote, one string per paragraph. */
+  paragraphs: string[];
+  /** Who said it, and where or when. */
+  name: string;
+  context: string;
+}
+
+const { paragraphs, name, context } = Astro.props;
+
+// About 2.4 words a second, a calm speaking pace.
+const wordCount = paragraphs.join(" ").split(/\s+/).length;
+const seconds = Math.round(wordCount / 2.4);
+const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
+// A waveform that looks like speech: random heights (the same on every build), smoothed.
+let seed = 7;
+const random = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+const raw = Array.from({ length: 44 }, () => 0.15 + random() * 0.85);
+const bars = raw.map((h, i) => {
+  const near = (raw[i - 1] ?? h) + (raw[i + 1] ?? h);
+  return Math.round(((h * 2 + near) / 4) * 100);
+});
+---
+
+<div class="voice" data-voice data-seconds={seconds}>
+  <div class="note">
+    <button class="play" type="button" aria-label="Play">
+      <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" /></svg>
+      <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"
+        ><rect x="5" y="4" width="4.5" height="16" rx="1.5" /><rect x="14.5" y="4" width="4.5" height="16" rx="1.5"
+        /></svg
+      >
+    </button>
+    <div class="wave" aria-hidden="true">
+      {bars.map((h) => <i style={`height: ${h}%`} />)}
+    </div>
+    <span class="time num" aria-hidden="true">{clock(seconds)}</span>
+  </div>
+  <p class="meta"><strong>{name}</strong> · {context}</p>
+
+  <blockquote class="transcript">
+    {
+      paragraphs.map((p) => (
+        <p>
+          {p.split(/\s+/).map((word, i, all) => (
+            <>
+              <span class="w">{word}</span>
+              {i < all.length - 1 && " "}
+            </>
+          ))}
+        </p>
+      ))
+    }
+  </blockquote>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-voice]").forEach((root) => {
+    const button = root.querySelector<HTMLButtonElement>(".play")!;
+    const wave = root.querySelector<HTMLElement>(".wave")!;
+    const bars = [...wave.querySelectorAll<HTMLElement>("i")];
+    const time = root.querySelector<HTMLElement>(".time")!;
+    const words = [...root.querySelectorAll<HTMLElement>(".w")];
+    const duration = Number(root.dataset.seconds) * 1000;
+
+    // Each word gets time for its length, plus a short pause after punctuation.
+    const weights = words.map((w) => {
+      const t = w.textContent ?? "";
+      let n = t.length + 2;
+      if (/[,;:–—]$/.test(t)) n += 5;
+      if (/[.!?]$/.test(t)) n += 9;
+      if (w === w.parentElement?.lastElementChild) n += 8;
+      return n;
+    });
+    const total = weights.reduce((a, b) => a + b, 0);
+    let sum = 0;
+    const ends = weights.map((n) => (sum += n) / total);
+
+    let elapsed = 0;
+    let playing = false;
+    let last = 0;
+    let frame = 0;
+    const clock = (ms: number) => {
+      const s = Math.floor(ms / 1000);
+      return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+    };
+
+    const render = () => {
+      const f = Math.min(1, elapsed / duration);
+      const played = Math.round(f * bars.length);
+      bars.forEach((b, i) => b.classList.toggle("on", i < played));
+      const current = ends.findIndex((e) => e > f);
+      const at = current === -1 ? words.length : current;
+      words.forEach((w, i) => {
+        w.classList.toggle("said", i < at);
+        w.classList.toggle("now", playing && i === at);
+      });
+      time.textContent = playing || elapsed > 0 ? clock(elapsed) : clock(duration);
+    };
+
+    const tick = (t: number) => {
+      elapsed += t - last;
+      last = t;
+      if (elapsed >= duration) return stop(true);
+      render();
+      frame = requestAnimationFrame(tick);
+    };
+
+    function play() {
+      if (elapsed >= duration) elapsed = 0;
+      playing = true;
+      root.classList.add("live", "playing");
+      button.setAttribute("aria-label", "Pause");
+      last = performance.now();
+      frame = requestAnimationFrame(tick);
+    }
+
+    function stop(ended = false) {
+      playing = false;
+      cancelAnimationFrame(frame);
+      root.classList.remove("playing");
+      button.setAttribute("aria-label", "Play");
+      if (ended) {
+        elapsed = 0;
+        root.classList.remove("live");
+      }
+      render();
+    }
+
+    button.addEventListener("click", () => (playing ? stop() : play()));
+    // Tap the waveform to jump to that point.
+    wave.addEventListener("click", (e) => {
+      const r = wave.getBoundingClientRect();
+      elapsed = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * duration;
+      if (playing) render();
+      else play();
+    });
+    render();
+  });
+</script>
+
+<style>
+  .note {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 480px;
+    height: 68px;
+    padding: 0 26px 0 20px;
+    background: #fff;
+    border: 1.5px solid var(--accent);
+    border-radius: 999px;
+    color: var(--accent);
+  }
+  .play {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+  }
+  .play svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+  }
+  .icon-pause,
+  .playing .icon-play {
+    display: none;
+  }
+  .playing .icon-pause {
+    display: block;
+  }
+  /* Without JavaScript there's nothing to play: just show the transcript. */
+  :global(html:not(.js)) .play {
+    visibility: hidden;
+  }
+  .wave {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2px;
+    height: 30px;
+    cursor: pointer;
+  }
+  .wave i {
+    flex: none;
+    width: 3px;
+    min-height: 3px;
+    border-radius: 2px;
+    background: #a9bdb5;
+    transition: background 0.2s;
+  }
+  .wave i.on {
+    background: var(--accent);
+  }
+  .time {
+    flex: none;
+    min-width: 2.6em;
+    text-align: right;
+    font-size: 1.05rem;
+    color: var(--text);
+  }
+  .meta {
+    margin-top: 14px;
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+  .meta strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .transcript {
+    margin: 48px 0 0;
+    max-width: 30em;
+    font-size: clamp(1.35rem, 2.3vw, 1.85rem);
+    font-weight: 500;
+    line-height: 1.32;
+    letter-spacing: -0.02em;
+  }
+  .transcript p + p {
+    margin-top: 0.9em;
+  }
+  /* While it plays: words still to come are pale, the word being said is green. */
+  .w {
+    transition: color 0.25s;
+  }
+  .live .w {
+    color: #bdb8ad;
+  }
+  .live .w.said {
+    color: var(--text);
+  }
+  .live .w.now {
+    color: var(--accent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .w,
+    .wave i {
+      transition: none;
+    }
+  }
+  @media (max-width: 719px) {
+    .note {
+      height: 60px;
+      gap: 14px;
+      padding: 0 20px 0 14px;
+    }
+    .transcript {
+      margin-top: 36px;
+    }
+  }
+</style>

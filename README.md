@@ -29,6 +29,7 @@ npm run preview  # preview the built site
 | Homepage text | `src/pages/index.astro` |
 | Other pages | `src/pages/donate/`, `src/pages/where-it-goes.astro`, `src/pages/foundation.astro` |
 | Donate box (monthly/once, amounts) | `src/components/DonateBox.astro` |
+| Voice message at the bottom (the Michael Jackson quote) | text in `src/pages/index.astro`, player in `src/components/VoiceNote.astro` |
 | Journal posts | In the browser via Pages CMS (see [Journal](#journal) below). Files: `src/content/journal/` (text), `src/assets/journal/` (photos) |
 | Journal pages and design | `src/pages/journal/` (list and post pages), "From the journal" in `src/pages/index.astro` |
 | Header and footer | `src/components/SiteHeader.astro`, `src/components/SiteFooter.astro` |

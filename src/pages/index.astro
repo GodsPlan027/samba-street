@@ -6,6 +6,7 @@ import SiteFooter from "../components/SiteFooter.astro";
 import DonateBox from "../components/DonateBox.astro";
 import SeasonSquares from "../components/SeasonSquares.astro";
 import BudgetBars from "../components/BudgetBars.astro";
+import VoiceNote from "../components/VoiceNote.astro";
 import { CONTACT_EMAIL } from "../site";
 import { getPublishedPosts, postUrl, formatDate, isoDate } from "../journal";
 import { startBudget, publicFinances, loadSessions, goal, euro } from "../transparency";
@@ -401,6 +402,21 @@ const weeksFromMarch = Array.from({ length: 52 }, (_, i) => i >= 9 && i <= 48);
           >Get in touch →</a
         >
       </div>
+    </div>
+  </section>
+
+  <!-- A message from 1993: Michael Jackson's words as a voice message with transcript -->
+  <section class="wrap message" aria-labelledby="message-title">
+    <p class="label" id="message-title">A message from 1993</p>
+    <div class="reveal">
+      <VoiceNote
+        name="Michael Jackson"
+        context="Grammy Awards, 1993"
+        paragraphs={[
+          "Today, when I create my music, I feel like an instrument of nature. I wonder what delight nature must feel when we open our hearts and express our God-given talents. The sound of approval rolls across the universe, and the whole world abounds in magic. Wonder fills our hearts, for what we have glimpsed, for an instant, the playfulness of life.",
+          "And that's why I love children and learn so much from being around them. I realise that many of our world's problems today – from the inner city crime, to large scale wars and terrorism, and our overcrowded prisons – are a result of the fact that children have had their childhood stolen from them. The magic, the wonder, the mystery, and the innocence of a child's heart, are the seeds of creativity that will heal the world. I really believe that.",
+        ]}
+      />
     </div>
   </section>
 
@@ -930,6 +946,23 @@ const weeksFromMarch = Array.from({ length: 52 }, (_, i) => i >= 9 && i <= 48);
     font-size: 1.2rem;
     color: rgba(255, 255, 255, 0.85);
     max-width: 24em;
+  }
+
+  /* ---------- A message from 1993 ---------- */
+  .message {
+    --rail: 230px;
+    display: grid;
+    gap: 16px;
+    padding-top: 128px;
+  }
+  @media (min-width: 900px) {
+    .message {
+      grid-template-columns: var(--rail) 1fr;
+      gap: 0;
+    }
+    .message > .label {
+      padding-top: 24px;
+    }
   }
 
   /* ---------- Funds, companies, clubs ---------- */
