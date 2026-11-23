@@ -41,6 +41,19 @@ export const START_BUDGET: { item: string; amount: number | null }[] = [
   { item: "Shirts", amount: null },
 ];
 
+// ---------- Budget 2027 ----------
+// The whole season, in euros, shown as bars on the homepage and on Where it goes.
+// Leave an amount at null until it's known: the site shows €XX.
+// placeholderShare (percent) only sets the bar lengths while amounts are missing;
+// once every amount is filled in, the bars are worked out from the amounts.
+export const BUDGET_2027: { item: string; amount: number | null; placeholderShare: number }[] = [
+  { item: "Coaches, paid per session", amount: null, placeholderShare: 46 },
+  { item: "Balls, cones, ladders, bibs, goals", amount: null, placeholderShare: 18 },
+  { item: "Football boots and shirts", amount: null, placeholderShare: 22 },
+  { item: "Tournaments", amount: null, placeholderShare: 9 },
+  { item: "Coach licences", amount: null, placeholderShare: 5 },
+];
+
 // ---------- The season ----------
 // Planned sessions per month (twice a week). Squares on the site fill in
 // as sessions are added to data/sessions.csv.

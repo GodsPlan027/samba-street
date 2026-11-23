@@ -1,0 +1,92 @@
+---
+// Budget 2027 as bars: each item's share of the whole season. Amounts are in src/site.ts.
+import { budget2027, euro } from "../transparency";
+
+interface Props {
+  /** Add a total line at the bottom (Where it goes page). */
+  total?: boolean;
+}
+
+const { total: showTotal = false } = Astro.props;
+const { items, total } = budget2027();
+---
+
+<ul class="budget">
+  {
+    items.map((i) => (
+      <li>
+        <span class="name">{i.item}</span>
+        <span class="track" aria-hidden="true">
+          <span style={`width: ${i.percent}%`} />
+        </span>
+        <span class="amt num">{euro(i.amount)}</span>
+      </li>
+    ))
+  }
+  {
+    showTotal && (
+      <li class="total">
+        <span class="name">Total</span>
+        <span class="amt num">{euro(total)}</span>
+      </li>
+    )
+  }
+</ul>
+
+<style>
+  .budget {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) 5em;
+    gap: 32px;
+    align-items: center;
+    padding: 22px 0;
+    border-top: 1px solid var(--rule);
+    font-size: 1.15rem;
+  }
+  li:last-child {
+    border-bottom: 1px solid var(--rule);
+  }
+  .track {
+    display: block;
+    height: 10px;
+    background: #ebe6dc;
+  }
+  .track span {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+  }
+  .amt {
+    text-align: right;
+    font-weight: 500;
+  }
+  .total {
+    border-top-color: var(--text);
+    font-weight: 500;
+  }
+  .total .amt {
+    grid-column: 3;
+  }
+  /* Phones: name and amount on one line, the bar underneath. */
+  @media (max-width: 719px) {
+    li {
+      grid-template-columns: 1fr auto;
+      gap: 10px 16px;
+      padding: 18px 0;
+      font-size: 1.05rem;
+    }
+    .track {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      height: 8px;
+    }
+    .total .amt {
+      grid-column: 2;
+    }
+  }
+</style>

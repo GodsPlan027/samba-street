@@ -5,7 +5,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { loadFinances, totals, parseCsv, parseDate, money, monthLabel } from "./dashboard/finances";
-import { START_BUDGET, SEASON_PLAN } from "./site";
+import { START_BUDGET, BUDGET_2027, SEASON_PLAN } from "./site";
 
 const FINANCES_FILE = "data/finances.csv";
 const SESSIONS_FILE = "data/sessions.csv";
@@ -18,6 +18,18 @@ export function startBudget() {
   const complete = START_BUDGET.every((i) => i.amount !== null);
   const total = complete ? START_BUDGET.reduce((n, i) => n + (i.amount ?? 0), 0) : null;
   return { items: START_BUDGET, total };
+}
+
+/** Budget 2027 with each item's share of the total, for the bars. */
+export function budget2027() {
+  const complete = BUDGET_2027.every((i) => i.amount !== null);
+  const total = complete ? BUDGET_2027.reduce((n, i) => n + (i.amount ?? 0), 0) : null;
+  const items = BUDGET_2027.map((i) => ({
+    item: i.item,
+    amount: i.amount,
+    percent: complete ? (total ? ((i.amount ?? 0) / total) * 100 : 0) : i.placeholderShare,
+  }));
+  return { items, total };
 }
 
 /** Money raised against the start budget, for the progress bar. */

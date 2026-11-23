@@ -20,6 +20,7 @@ npm run preview  # preview the built site
 | Foundation details (KvK, RSIN, IBAN, address, board, ANBI) | `FOUNDATION` in `src/site.ts` |
 | Payment links behind the donate buttons | `DONATE_LINKS` in `src/site.ts` |
 | Start budget (the amounts on the homepage and Where it goes) | `START_BUDGET` in `src/site.ts` |
+| Budget 2027 (the bars on the homepage and Where it goes) | `BUDGET_2027` in `src/site.ts` |
 | Planned sessions per month (the squares) | `SEASON_PLAN` in `src/site.ts` |
 | Money in and out, shown on the site | `data/finances.csv` |
 | Training log, shown on the site | `data/sessions.csv` |
@@ -56,7 +57,7 @@ A mistake in either file (for example a date the site can't read) stops the buil
 The new site is on the branch `fundraising`, and online for testing at **https://test.sambastreet.charity** (hidden from search engines). The live site on sambastreet.charity is still the old one, from `main`. Once Stichting Samba Street is registered:
 
 1. Fill in `FOUNDATION` in `src/site.ts`: KvK number, RSIN, IBAN, address and board. Set `anbi: true` only once the Belastingdienst has granted ANBI status.
-2. Fill in the payment links in `DONATE_LINKS`, and the amounts in `START_BUDGET`.
+2. Fill in the payment links in `DONATE_LINKS`, and the amounts in `START_BUDGET` and `BUDGET_2027`. The bars then follow the real amounts (until then they use the proportions from the design, `placeholderShare`).
 3. Check everything on the test site.
 4. Merge `fundraising` into `main` and push. The site on sambastreet.charity updates within a few minutes.
 5. Afterwards, delete the test repo and the `test` DNS record (see below), so nobody else can take over that address.

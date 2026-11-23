@@ -5,6 +5,7 @@ import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import DonateBox from "../components/DonateBox.astro";
 import SeasonSquares from "../components/SeasonSquares.astro";
+import BudgetBars from "../components/BudgetBars.astro";
 import { CONTACT_EMAIL } from "../site";
 import { getPublishedPosts, postUrl, formatDate, isoDate } from "../journal";
 import { startBudget, publicFinances, loadSessions, goal, euro } from "../transparency";
@@ -307,31 +308,13 @@ const weeksFromMarch = Array.from({ length: 52 }, (_, i) => i >= 9 && i <= 48);
       </div>
     </article>
 
-    <!-- Follow the season: every session gets a square, plus money in and out -->
+    <!-- Follow the season: every session gets a square -->
     <section class="block" aria-labelledby="season-title">
       <p class="label">Follow the season</p>
       <div class="reveal">
         <h2 id="season-title">Every session gets a square.</h2>
-        <p class="lead">
-          Squares fill in as sessions happen: date, players, minutes and drills. Next to it, all
-          money in and out.
-        </p>
+        <p class="lead">Squares fill in as sessions happen: date, players, minutes and drills.</p>
         <SeasonSquares />
-        <div class="inout">
-          <div>
-            <p class="label">Money in</p>
-            <p class="big num">{money(finances.moneyIn)}</p>
-          </div>
-          <div>
-            <p class="label">Money out</p>
-            <p class="big num">{money(finances.moneyOut)}</p>
-          </div>
-          <div>
-            <p class="label">Sessions held</p>
-            <p class="big num">{sessions.length}</p>
-          </div>
-        </div>
-        <a class="btn-line more" href="/where-it-goes/">Every session and every euro →</a>
       </div>
     </section>
 
@@ -355,19 +338,29 @@ const weeksFromMarch = Array.from({ length: 52 }, (_, i) => i >= 9 && i <= 48);
       )
     }
 
-    <!-- Who we are -->
-    <section class="block who" aria-label="Who we are">
-      <p class="label">Who we are</p>
+    <!-- Where it goes: budget 2027 as bars, then money in and out -->
+    <section class="block" aria-labelledby="budget-title">
+      <p class="label">Where it goes</p>
       <div class="reveal">
-        <blockquote class="quote">
-          “In Khayelitsha there are so many young people who love the game and have the talent to
-          go far. But the chances simply aren't there, or they're much smaller.”
-        </blockquote>
-        <p class="cite">Vince Beekmans, founder</p>
-        <p class="lead">
-          We found Nkazimlo through Khanyisa, a teacher who has lived in Khayelitsha most of his life
-          and knows principals at several schools. The school gave us its full blessing.
-        </p>
+        <h2 id="budget-title">Budget 2027. Every euro in and out is public.</h2>
+        <div class="budget">
+          <BudgetBars />
+        </div>
+        <div class="inout">
+          <div>
+            <p class="label">Money in</p>
+            <p class="big num">{money(finances.moneyIn)}</p>
+          </div>
+          <div>
+            <p class="label">Money out</p>
+            <p class="big num">{money(finances.moneyOut)}</p>
+          </div>
+          <div>
+            <p class="label">Sessions held</p>
+            <p class="big num">{sessions.length}</p>
+          </div>
+        </div>
+        <a class="btn-line more" href="/where-it-goes/">Every session and every euro →</a>
       </div>
     </section>
   </main>
@@ -900,19 +893,12 @@ const weeksFromMarch = Array.from({ length: 52 }, (_, i) => i >= 9 && i <= 48);
     color: var(--accent);
   }
 
-  .quote {
-    font-size: clamp(1.7rem, 3.4vw, 2.6rem);
-    font-weight: 500;
-    line-height: 1.15;
-    letter-spacing: -0.03em;
-    max-width: 22em;
+  /* Where it goes: the budget bars, then money in and out. */
+  .budget {
+    margin-top: 48px;
   }
-  .cite {
-    margin-top: 18px;
-    color: var(--muted);
-  }
-  .who .lead {
-    margin-top: 36px;
+  .budget + .inout {
+    margin-top: 72px;
   }
 
   /* ---------- Donate ---------- */

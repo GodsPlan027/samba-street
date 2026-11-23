@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import SeasonSquares from "../components/SeasonSquares.astro";
+import BudgetBars from "../components/BudgetBars.astro";
 import { startBudget, publicFinances, loadSessions, euro } from "../transparency";
 import { money, dayLabel, byCategory } from "../dashboard/finances";
 import "../styles/page.css";
@@ -30,6 +31,14 @@ const income = byCategory(finances.transactions, "in").filter((c) => c.amount > 
     </section>
 
     <section class="rows">
+      <div class="row">
+        <h2>Budget 2027</h2>
+        <div>
+          <p class="text">The whole season, from the first training in March to the end of the school year.</p>
+          <div class="spaced-sm"><BudgetBars total /></div>
+        </div>
+      </div>
+
       <div class="row">
         <h2>The start budget</h2>
         <div>
@@ -166,6 +175,10 @@ const income = byCategory(finances.transactions, "in").filter((c) => c.amount > 
 <style>
   .spaced {
     margin-top: 32px;
+  }
+  .spaced-sm {
+    margin-top: 16px;
+    max-width: 760px;
   }
   caption {
     text-align: left;
